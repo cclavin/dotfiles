@@ -1,0 +1,7 @@
+# Never commit secrets
+*.env
+*.pem
+*.key
+*_rsa
+*_ed25519
+.DS_Store
