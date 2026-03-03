@@ -1,7 +1,24 @@
-# Never commit secrets
+# ---- Secrets — never commit these ------------------------------------------
 *.env
 *.pem
 *.key
 *_rsa
+*_dsa
+*_ecdsa
 *_ed25519
+*.p12
+*.pfx
+
+# Machine-specific git config (credential helper, signing key, work email)
+git/.gitconfig.local
+
+# ---- OS artifacts -----------------------------------------------------------
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Editor -----------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo

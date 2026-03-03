@@ -1,0 +1,33 @@
+# ~/.gitconfig.local — machine-specific git config
+# Copy this file to ~/.gitconfig.local and fill in values.
+# This file is NOT tracked in dotfiles (it's in .gitignore).
+# It is included by ~/.gitconfig via [include] path = ~/.gitconfig.local
+
+# ---- Credential helper (uncomment the one for your OS) ----------------------
+
+# macOS (built-in)
+# [credential]
+# 	helper = osxkeychain
+
+# Debian / Ubuntu (requires: sudo apt install libsecret-tools)
+# [credential]
+# 	helper = /usr/share/doc/git/contrib/credential/libsecret/git-credential-libsecret
+
+# Windows (Git Credential Manager — installed with Git for Windows)
+# [credential]
+# 	helper = manager
+
+# ---- GPG commit signing (optional but recommended) --------------------------
+# Generate a key: gpg --full-generate-key
+# List keys:      gpg --list-secret-keys --keyid-format=long
+# [user]
+# 	signingkey = YOUR_GPG_KEY_ID
+# [commit]
+# 	gpgsign = true
+# [gpg]
+# 	program = gpg
+
+# ---- Work / per-directory email overrides -----------------------------------
+# Override email for repos under ~/work/
+# [includeIf "gitdir:~/work/"]
+# 	path = ~/.gitconfig.work

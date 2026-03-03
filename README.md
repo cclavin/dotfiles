@@ -1,42 +1,210 @@
 # dotfiles
 
-Personal macOS configuration files, tracked with git and symlinked to their expected locations.
+Personal configuration files for macOS, Debian Linux, and WSL2 (Windows).
+Symlinked to their expected locations by a setup script. Secrets are never stored here.
+
+---
 
 ## What's tracked
 
-| File | Symlinked to |
-|------|-------------|
-| `zsh/.zshrc` | `~/.zshrc` |
-| `git/.gitconfig` | `~/.gitconfig` |
-| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
-| `claude/settings.json` | `~/.claude/settings.json` |
+| File | Symlinked to | Purpose |
+|------|-------------|---------|
+| `zsh/.zshrc` | `~/.zshrc` | Shell config, aliases, secret loading |
+| `git/.gitconfig` | `~/.gitconfig` | Git defaults and security settings |
+| `git/.gitconfig.local.example` | (template only) | Machine-specific overrides |
+| `.editorconfig` | `~/.editorconfig` | Universal editor whitespace/encoding rules |
+| `.prettierrc` | `~/.prettierrc` | Default Prettier formatting |
+| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global Claude Code instructions |
+| `claude/settings.json` | `~/.claude/settings.json` | Claude Code permissions |
+| `Brewfile` | (not symlinked) | macOS tool list for `brew bundle` |
 
-## Setting up on a new machine
+### Not tracked (machine-specific)
+| File | Purpose |
+|------|---------|
+| `~/.gitconfig.local` | Credential helper, GPG key, work email overrides |
+| `~/.zshrc.local` | Machine-specific shell additions (source from .zshrc if needed) |
+
+---
+
+## Setup — macOS
 
 ```bash
+# 1. Install Homebrew if not present
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 2. Clone dotfiles
+git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
+
+# 3. Run setup
+cd ~/dotfiles
+bash setup.sh
+
+# 4. Install all tools (git, gh, fnm, gpg, pass, ripgrep, etc.)
+brew bundle
+
+# 5. Reload shell
+source ~/.zshrc
+
+# 6. Authenticate GitHub CLI
+gh auth login
+
+# 7. Store API keys in macOS Keychain
+security add-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w
+# Paste the key value when prompted — it will not echo
+```
+
+---
+
+## Setup — Debian / Ubuntu (native)
+
+```bash
+# 1. Clone dotfiles
+git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
+
+# 2. Run setup (installs packages, creates symlinks, sets up git)
+cd ~/dotfiles
+bash setup-linux.sh
+
+# 3. Reload shell
+source ~/.zshrc   # or: exec zsh
+
+# 4. Authenticate GitHub CLI
+gh auth login
+
+# 5. Store API keys with pass (GPG-encrypted)
+gpg --full-generate-key       # create a key if you don't have one
+pass init <your-gpg-key-id>   # initialise the password store
+pass insert api-keys/ANTHROPIC_API_KEY
+```
+
+---
+
+## Setup — WSL2 (Windows)
+
+WSL2 + Debian/Ubuntu is the recommended Windows environment. It runs the
+same Linux toolchain as the Debian setup with no rewrites.
+
+```powershell
+# In PowerShell (admin) — enable WSL2 and install Debian
+wsl --install -d Debian
+# Restart when prompted, then open the Debian terminal
+```
+
+```bash
+# Inside WSL2 Debian terminal:
 git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-chmod +x setup.sh
-./setup.sh
+bash setup-linux.sh
 ```
 
-Then store secrets in the macOS Keychain (never in files):
+The setup script detects WSL2 and configures the git credential helper to use
+**Windows Git Credential Manager** (installed alongside Git for Windows) so you
+authenticate once and it works in both Windows and WSL. If Git for Windows is
+not installed, it falls back to `pass`.
+
+**Install Node + Claude Code in WSL2:**
 ```bash
-security add-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w
+fnm install 20 && fnm use 20
+npm install -g @anthropic-ai/claude-code
 ```
+
+**Important WSL2 path note:** keep your project files under `~/` (the Linux
+filesystem), not under `/mnt/c/`. File I/O from WSL on Windows-mounted drives
+is significantly slower.
+
+---
+
+## Secrets — how they work
+
+Secrets are loaded at shell startup from the OS credential store — never from
+files on disk.
+
+| Platform | Store | How to add a secret |
+|----------|-------|-------------------|
+| macOS | Keychain | `security add-generic-password -a "$USER" -s KEY_NAME -w` |
+| Linux (desktop) | GNOME libsecret | `secret-tool store --label="KEY_NAME" application KEY_NAME` |
+| Linux / WSL | pass (GPG) | `pass insert api-keys/KEY_NAME` |
+| Windows (WSL) | Windows Credential Manager | via Git Credential Manager, or use pass |
+
+`~/.zshrc` calls `_load_secret KEY_NAME` which queries the appropriate store
+for the current OS. If no store is available the variable is simply unset — no
+error, no plain-text fallback.
+
+**Security properties of `pass`:**
+- Each secret is a GPG-encrypted file
+- The password store itself can be tracked in a private git repo for backup
+- Works on macOS, Linux, and WSL with no native integration required
+- Requires a GPG key (the same key can be used for commit signing)
+
+---
+
+## Machine-local git config (`~/.gitconfig.local`)
+
+`~/.gitconfig` is tracked here and shared across all machines. Machine-specific
+settings (credential helper, GPG key ID, work email) live in `~/.gitconfig.local`,
+which is included by `~/.gitconfig` but is never committed.
+
+The setup scripts create `~/.gitconfig.local` automatically. To customise it:
+```bash
+# See the template for all options:
+cat ~/dotfiles/git/.gitconfig.local.example
+
+# Edit your local copy:
+$EDITOR ~/.gitconfig.local
+```
+
+---
+
+## GPG commit signing (optional)
+
+Commit signing proves commits genuinely came from you.
+
+```bash
+# 1. Generate a key
+gpg --full-generate-key
+# Choose: RSA and RSA, 4096 bits, no expiry (or set one)
+
+# 2. Get your key ID
+gpg --list-secret-keys --keyid-format=long
+# Look for:  sec   rsa4096/XXXXXXXXXXXXXXXX
+
+# 3. Add to ~/.gitconfig.local
+echo '[user]' >> ~/.gitconfig.local
+echo '  signingkey = XXXXXXXXXXXXXXXX' >> ~/.gitconfig.local
+echo '[commit]' >> ~/.gitconfig.local
+echo '  gpgsign = true' >> ~/.gitconfig.local
+
+# 4. Add public key to GitHub
+gpg --armor --export XXXXXXXXXXXXXXXX | gh gpg-key add -
+```
+
+---
 
 ## Adding a new config file
 
 ```bash
-cp ~/.some-config ~/dotfiles/tool/.some-config
-rm ~/.some-config
+# Move the file into dotfiles
+mv ~/.some-config ~/dotfiles/tool/.some-config
+
+# Create the symlink
 ln -s ~/dotfiles/tool/.some-config ~/.some-config
+
+# Add the link() call to both setup.sh and setup-linux.sh
+
+# Commit
+cd ~/dotfiles
+git add tool/.some-config setup.sh setup-linux.sh
+git commit -m "feat(tool): track .some-config"
+git push
 ```
 
-Then commit:
+---
+
+## Updating on an existing machine
+
 ```bash
 cd ~/dotfiles
-git add tool/.some-config
-git commit -m "feat(tool): add initial config"
-git push
+git pull
+# Symlinks update automatically — no re-run needed unless new files were added
+source ~/.zshrc
 ```

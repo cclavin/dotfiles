@@ -1,3 +1,85 @@
 [user]
 	name = cclavin
 	email = cclavin@users.noreply.github.com
+
+[init]
+	defaultBranch = main
+
+[core]
+	# Normalize line endings to LF on commit (safe on all platforms)
+	autocrlf = input
+	# Warn on whitespace issues
+	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+	# Faster status on large repos
+	untrackedCache = true
+
+[push]
+	# Push current branch without needing to specify remote/branch name
+	default = current
+	# Automatically set up tracking on first push
+	autoSetupRemote = true
+
+[pull]
+	# Keep history linear; avoids noisy merge commits
+	rebase = true
+
+[fetch]
+	# Delete local refs to remote branches that no longer exist
+	prune = true
+	# Also prune tags
+	pruneTags = false
+
+[rebase]
+	# Stash/unstash dirty working tree automatically around rebase
+	autoStash = true
+
+[diff]
+	# Histogram produces more readable diffs than default Myers
+	algorithm = histogram
+	# Highlight moved blocks of code differently
+	colorMoved = default
+
+[merge]
+	# Show base, ours, and theirs in conflict markers (easier to resolve)
+	conflictstyle = zdiff3
+
+# ---- Security ---------------------------------------------------------------
+[transfer]
+	# Verify object integrity on push/fetch (catches corruption and tampering)
+	fsckObjects = true
+
+[receive]
+	fsckObjects = true
+
+[fetch]
+	fsckObjects = true
+
+# ---- Commit signing (disabled by default — enable per machine in .gitconfig.local)
+# To enable:
+#   git config --global commit.gpgsign true
+#   git config --global user.signingkey YOUR_GPG_KEY_ID
+# See setup docs for generating a GPG key.
+
+# ---- Aliases ----------------------------------------------------------------
+[alias]
+	# Pretty graph log
+	lg = log --oneline --graph --decorate --all
+	# Compact status
+	st = status -sb
+	# Undo last commit but keep changes staged
+	undo = reset --soft HEAD~1
+	# Show files changed in last commit
+	changed = diff --name-only HEAD~1 HEAD
+	# List all aliases
+	aliases = config --get-regexp ^alias\\.
+
+# ---- Credential helper (set per-machine in ~/.gitconfig.local) --------------
+# macOS:   credential.helper = osxkeychain
+# Linux:   credential.helper = /usr/share/doc/git/contrib/credential/libsecret/git-credential-libsecret
+#          or: credential.helper = store (less secure — encrypted store preferred)
+# Windows: credential.helper = manager (Git Credential Manager)
+
+# ---- Machine-local overrides (not tracked in dotfiles) ----------------------
+# Contains: credential.helper, user.signingkey, work email overrides, etc.
+[include]
+	path = ~/.gitconfig.local

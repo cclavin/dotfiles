@@ -33,3 +33,10 @@ These instructions apply to every project. Project-level CLAUDE.md files extend 
 - Write commit messages in imperative mood: "Fix bug" not "Fixed bug".
 - Keep commits focused — one logical change per commit.
 - Use conventional commits format when the project uses it: `type(scope): message`.
+
+## New Projects
+- At the start of any new project, run `git init` before writing files — unless git is already initialized.
+- Default to a private GitHub repo: `gh repo create <name> --private --source=. --remote=origin --push`
+- Use `--public` only when explicitly requested.
+- Project template is at `~/projects/_template/` — copy it as the starting point.
+- Before pushing, confirm there are no credentials, API keys, or sensitive configs staged.
