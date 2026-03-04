@@ -1,22 +1,24 @@
 # dotfiles
 
 Personal configuration files for macOS, Debian Linux, and WSL2 (Windows).
-Symlinked to their expected locations by a setup script. Secrets are never stored here.
+
+This repository handles automated bootstrapping of my core terminal environment and development toolchain. It utilizes a highly modular **Router Pattern**, dynamic symlinking, and strict OS credential store secrets management to provide a seamless, idempotent setup experience across wildly different machines.
 
 ---
 
 ## What's tracked
 
-| File | Symlinked to | Purpose |
+| File / Folder | Symlinked to | Purpose |
 |------|-------------|---------|
 | `zsh/.zshrc` | `~/.zshrc` | Shell config, aliases, secret loading |
 | `git/.gitconfig` | `~/.gitconfig` | Git defaults and security settings |
 | `git/.gitconfig.local.example` | (template only) | Machine-specific overrides |
 | `.editorconfig` | `~/.editorconfig` | Universal editor whitespace/encoding rules |
 | `.prettierrc` | `~/.prettierrc` | Default Prettier formatting |
-| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global Claude Code instructions |
+| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global AI Agent instructions |
 | `claude/settings.json` | `~/.claude/settings.json` | Claude Code permissions |
 | `Brewfile` | (not symlinked) | macOS tool list for `brew bundle` |
+| `.cursorrules` | (repo only) | Repository-specific AI Agent instructions |
 
 ### Not tracked (machine-specific)
 | File | Purpose |
@@ -132,6 +134,22 @@ error, no plain-text fallback.
 - The password store itself can be tracked in a private git repo for backup
 - Works on macOS, Linux, and WSL with no native integration required
 - Requires a GPG key (the same key can be used for commit signing)
+
+---
+
+## 🤖 AI & Agents
+
+This repository is optimized to guide and constrain AI coding assistants (like Claude Code, Cursor, and GitHub Copilot). 
+
+### Global Rules (`claude/CLAUDE.md`)
+The setup scripts automatically symlink `claude/CLAUDE.md` to `~/.claude/CLAUDE.md`. This sets the baseline global communication, coding, and git standards for any AI agent executing on your system, regardless of what project they are operating in.
+
+### Repository Rules (`.cursorrules`)
+To ensure AI agents do not break the architecture of *these dotfiles*, there is a `.cursorrules` file at the root. If you ask an AI to "add a new tool to my dotfiles", it automatically reads the rules and knows how to:
+- Respect the `bootstrap.sh` router pattern.
+- Avoid hardcoding secrets.
+- Use the `link()` idempotency helper.
+- Avoid deprecated tools like `apt-key` or Go PPAs.
 
 ---
 
