@@ -119,6 +119,12 @@ link "$DOTFILES/.prettierrc"            "$HOME/.prettierrc"
 link "$DOTFILES/claude/CLAUDE.md"       "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/claude/settings.json"   "$HOME/.claude/settings.json"
 
+# Agent Rules Polyfills (points IDEs to the repository source of truth)
+link "$DOTFILES/AGENTS.md"              "$DOTFILES/.cursorrules"
+link "$DOTFILES/AGENTS.md"              "$DOTFILES/.windsurfrules"
+link "$DOTFILES/AGENTS.md"              "$DOTFILES/.github/copilot-instructions.md"
+link "$DOTFILES/AGENTS.md"              "$DOTFILES/CLAUDE.md"
+
 # ---- .gitconfig.local -------------------------------------------------------
 
 section "Git local config"

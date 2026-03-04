@@ -18,7 +18,7 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global AI Agent instructions |
 | `claude/settings.json` | `~/.claude/settings.json` | Claude Code permissions |
 | `Brewfile` | (not symlinked) | macOS tool list for `brew bundle` |
-| `.cursorrules` | (repo only) | Repository-specific AI Agent instructions |
+| `AGENTS.md` | (repo polyfills) | Repository-specific AI Agent instructions |
 
 ### Not tracked (machine-specific)
 | File | Purpose |
@@ -144,8 +144,8 @@ This repository is optimized to guide and constrain AI coding assistants (like C
 ### Global Rules (`claude/CLAUDE.md`)
 The setup scripts automatically symlink `claude/CLAUDE.md` to `~/.claude/CLAUDE.md`. This sets the baseline global communication, coding, and git standards for any AI agent executing on your system, regardless of what project they are operating in.
 
-### Repository Rules (`.cursorrules`)
-To ensure AI agents do not break the architecture of *these dotfiles*, there is a `.cursorrules` file at the root. If you ask an AI to "add a new tool to my dotfiles", it automatically reads the rules and knows how to:
+### Repository Rules (`AGENTS.md`)
+To ensure AI agents do not break the architecture of *these dotfiles*, there is an `AGENTS.md` file at the root. The bootstrap script automatically symlinks this to `.cursorrules`, `.windsurfrules`, `.github/copilot-instructions.md`, and local `CLAUDE.md`. If you ask an AI to "add a new tool to my dotfiles", it automatically reads the rules from its respective file and knows how to:
 - Respect the `bootstrap.sh` router pattern.
 - Avoid hardcoding secrets.
 - Use the `link()` idempotency helper.

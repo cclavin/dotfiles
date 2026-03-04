@@ -22,3 +22,9 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# ---- Local Agent Rules (Polyfilled from AGENTS.md) --------------------------
+.cursorrules
+.windsurfrules
+.github/copilot-instructions.md
+/CLAUDE.md
