@@ -37,18 +37,15 @@ git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
 
 # 3. Run setup
 cd ~/dotfiles
-bash setup.sh
+bash bootstrap.sh
 
-# 4. Install all tools (git, gh, fnm, gpg, pass, ripgrep, etc.)
-brew bundle
-
-# 5. Reload shell
+# 4. Reload shell
 source ~/.zshrc
 
-# 6. Authenticate GitHub CLI
+# 5. Authenticate GitHub CLI
 gh auth login
 
-# 7. Store API keys in macOS Keychain
+# 6. Store API keys in macOS Keychain
 security add-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w
 # Paste the key value when prompted — it will not echo
 ```
@@ -63,7 +60,7 @@ git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
 
 # 2. Run setup (installs packages, creates symlinks, sets up git)
 cd ~/dotfiles
-bash setup-linux.sh
+bash bootstrap.sh
 
 # 3. Reload shell
 source ~/.zshrc   # or: exec zsh
@@ -94,7 +91,7 @@ wsl --install -d Debian
 # Inside WSL2 Debian terminal:
 git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-bash setup-linux.sh
+bash bootstrap.sh
 ```
 
 The setup script detects WSL2 and configures the git credential helper to use
@@ -189,11 +186,11 @@ mv ~/.some-config ~/dotfiles/tool/.some-config
 # Create the symlink
 ln -s ~/dotfiles/tool/.some-config ~/.some-config
 
-# Add the link() call to both setup.sh and setup-linux.sh
+# Add the link() call to both setup.sh and scripts/linux-core.sh
 
 # Commit
 cd ~/dotfiles
-git add tool/.some-config setup.sh setup-linux.sh
+git add tool/.some-config setup.sh scripts/linux-core.sh
 git commit -m "feat(tool): track .some-config"
 git push
 ```
