@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# bin/ai-init — Scaffolds AI agent rules into the current project directory.
+#
+# Usage:
+#   ai-init <language-template-name>
+#   ai-init pios --stack <stack-name>
+#
+# Example:
+#   ai-init go
+#   ai-init pios --stack go-api
+
+set -euo pipefail
+
+# Find dotfiles dynamically assuming this script is in ~/dotfiles/bin/
+DOTFILES="$(cd "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")" && pwd)"
+BASE_RULES="$DOTFILES/agent-base"
+GLOBAL_STD="$BASE_RULES/global/standards.md"
+
+if [ $# -eq 0 ]; then
+  echo "Usage: ai-init <language-template>"
+  echo "       ai-init pios --stack <stack-name>"
+  echo "Available templates:"
+  ls -1 "$BASE_RULES/templates" | sed 's/\.md$//'
+  exit 1
+fi
+
+PIOS_MODE=false
+TEMPLATE_NAME=""
+
+if [ "$1" = "pios" ]; then
+  PIOS_MODE=true
+  if [ "${2:-}" != "--stack" ] || [ -z "${3:-}" ]; then
+    echo "Error: When using pios, you must provide a stack. Example: ai-init pios --stack go-api"
+    exit 1
+  fi
+  TEMPLATE_NAME="$3"
+else
+  TEMPLATE_NAME="$1"
+fi
+
+if ! $PIOS_MODE; then
+  TEMPLATE_FILE="$BASE_RULES/templates/${TEMPLATE_NAME}.md"
+
+  if [ ! -f "$GLOBAL_STD" ]; then
+    echo "Error: Global standards file not found at $GLOBAL_STD"
+    exit 1
+  fi
+
+  if [ ! -f "$TEMPLATE_FILE" ]; then
+    echo "Error: Template not found for '$TEMPLATE_NAME'"
+    echo "Available templates:"
+    ls -1 "$BASE_RULES/templates" | sed 's/\.md$//'
+    exit 1
+  fi
+
+  # 1. Compile rules into .cursorrules
+  echo "Compiling Global Standards and $TEMPLATE_NAME Template..."
+  cat "$GLOBAL_STD" > .cursorrules
+  echo "" >> .cursorrules
+  echo "---" >> .cursorrules
+  echo "" >> .cursorrules
+  cat "$TEMPLATE_FILE" >> .cursorrules
+
+else
+  # PIOS Mode: Curl from GitHub
+  PIOS_RAW_URL="https://raw.githubusercontent.com/cclavin/PIOS/main"
+  
+  echo "Fetching PIOS AGENTS.md baseline..."
+  if ! curl -fsSL "$PIOS_RAW_URL/AGENTS.md" > .cursorrules; then
+    echo "Failed to fetch AGENTS.md. Does the repository exist and is it public?"
+    exit 1
+  fi
+  
+  echo "" >> .cursorrules
+  echo "---" >> .cursorrules
+  echo "" >> .cursorrules
+  
+  echo "Fetching PIOS Profile Stack: $TEMPLATE_NAME..."
+  if ! curl -fsSL "$PIOS_RAW_URL/profiles/stacks/${TEMPLATE_NAME}.md" >> .cursorrules; then
+    echo "Failed to fetch stack profile '${TEMPLATE_NAME}.md'. Continuing without it..."
+  fi
+  
+  # Fetch Cursor Adapter as an example of tool-specific adapter
+  echo "" >> .cursorrules
+  echo "---" >> .cursorrules
+  echo "" >> .cursorrules
+  echo "Fetching PIOS Cursor Adapter..."
+  if ! curl -fsSL "$PIOS_RAW_URL/tool-adapters/cursor.md" >> .cursorrules; then
+    echo "Failed to fetch cursor adapter. Continuing without it..."
+  fi
+fi
+
+# 2. Polyfill for other IDEs/Agents
+echo "Polyfilling rules for local CLAUDE.md, .windsurfrules, and copilot..."
+cp .cursorrules local-CLAUDE.md
+# Note: Claude CLI prefers CLAUDE.md. Cursor uses .cursorrules
+# GitHub Copilot prefers .github/copilot-instructions.md
+cp .cursorrules .windsurfrules
+mkdir -p .github
+cp .cursorrules .github/copilot-instructions.md
+
+echo "✅ AI Context Initialized!"
