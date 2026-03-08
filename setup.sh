@@ -48,6 +48,9 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
   exit 1
 fi
 
+section "Workspace"
+bash "$DOTFILES/scripts/workspace-init.sh"
+
 section "Symlinking config files"
 link "$DOTFILES/zsh/.zshrc"             "$HOME/.zshrc"
 link "$DOTFILES/git/.gitconfig"         "$HOME/.gitconfig"
@@ -70,7 +73,7 @@ link "$DOTFILES/bin/ai-init"            "$HOME/.local/bin/ai-init"
 section "Git config & templates"
 
 # Configure Git Templates (Strategy A)
-git config --global init.templatedir "$HOME/dotfiles/agent-base/git-templates"
+git config --global init.templatedir "$DOTFILES/agent-base/git-templates"
 success "Git templates configured to use dotfiles/agent-base/git-templates"
 
 GITCONFIG_LOCAL="$HOME/.gitconfig.local"

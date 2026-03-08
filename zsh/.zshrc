@@ -5,8 +5,8 @@ if command -v fnm &>/dev/null; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
 
-# Claude Code - start in projects directory
-alias claude='cd ~/projects && claude'
+# Claude Code - start in workspace
+alias claude='cd ~/Documents/workspace/code && claude'
 
 # ---- Secure secret loading --------------------------------------------------
 # Loads a secret from the OS-appropriate credential store.
@@ -42,15 +42,55 @@ new-project() {
   local visibility="--private"
   [[ "$*" == *--public* ]] && visibility="--public"
 
-  local dest="$HOME/projects/$name"
+  local dest="$HOME/Documents/workspace/code/$name"
   if [[ -d "$dest" ]]; then
     echo "Error: $dest already exists" >&2
     return 1
   fi
 
-  cp -r "$HOME/projects/_template" "$dest"
+  cp -r "$HOME/Documents/workspace/code/_template" "$dest"
   cd "$dest" || return 1
   git init && git add . && git commit -m "Initial commit"
   gh repo create "$name" "$visibility" --source=. --remote=origin --push
   echo "Ready: https://github.com/cclavin/$name"
+}
+
+# ---- Sync workspace/code repos ----------------------------------------------
+# Shows git status for every repo in workspace/code, then pulls on confirmation.
+# Usage: sync-code
+sync-code() {
+  local code_dir="$HOME/Documents/workspace/code"
+  local repos=()
+  for d in "$code_dir"/*/; do
+    [[ -d "$d/.git" ]] && repos+=("$d")
+  done
+
+  if [[ ${#repos[@]} -eq 0 ]]; then
+    echo "No git repos found in $code_dir"
+    return 0
+  fi
+
+  echo ""
+  echo "── Repos in workspace/code ──────────────────────────"
+  for repo in "${repos[@]}"; do
+    local name status
+    name="$(basename "$repo")"
+    git -C "$repo" fetch --quiet 2>/dev/null
+    status="$(git -C "$repo" status -sb 2>/dev/null | head -1)"
+    echo "  $name  →  $status"
+  done
+
+  echo ""
+  read -r -p "Pull all repos? [y/N] " -n 1 answer
+  echo ""
+  [[ "$answer" =~ ^[Yy]$ ]] || return 0
+
+  for repo in "${repos[@]}"; do
+    local name
+    name="$(basename "$repo")"
+    echo "  Pulling $name..."
+    git -C "$repo" pull --ff-only 2>&1 | sed 's/^/    /'
+  done
+  echo ""
+  echo "Done."
 }

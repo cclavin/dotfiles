@@ -38,5 +38,5 @@ These instructions apply to every project. Project-level CLAUDE.md files extend 
 - At the start of any new project, run `git init` before writing files — unless git is already initialized.
 - Default to a private GitHub repo: `gh repo create <name> --private --source=. --remote=origin --push`
 - Use `--public` only when explicitly requested.
-- Project template is at `~/projects/_template/` — copy it as the starting point.
+- Project template is at `~/Documents/workspace/code/_template/` — copy it as the starting point.
 - Before pushing, confirm there are no credentials, API keys, or sensitive configs staged.
