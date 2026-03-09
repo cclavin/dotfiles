@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/workspace-init.sh — Idempotent workspace directory setup.
 #
-# Creates ~/Documents/workspace/{code,vault} and optionally migrates
+# Creates ~/workspace/{code,vault} and optionally migrates
 # an existing Obsidian vault from its legacy location.
 #
 # Safe to re-run — all operations are idempotent.
@@ -17,7 +17,7 @@ section() { echo ""; echo "── $* ──────────────�
 
 # ---- Paths ------------------------------------------------------------------
 
-WORKSPACE="$HOME/Documents/workspace"
+WORKSPACE="$HOME/workspace"
 CODE_DIR="$WORKSPACE/code"
 VAULT_DIR="$WORKSPACE/vault"
 
