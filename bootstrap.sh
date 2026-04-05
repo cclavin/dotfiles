@@ -18,7 +18,7 @@ if [ "$OS" = "Darwin" ]; then
 elif [ "$OS" = "Linux" ]; then
     echo "🐧 Linux / WSL detected."
     bash scripts/linux-core.sh
-    
+
     echo ""
     read -r -p "Install Cloud/DevOps Toolchain (Go 1.22+, GCP CLI, Terraform, Docker)? [y/N] " -n 1 answer
     echo ""

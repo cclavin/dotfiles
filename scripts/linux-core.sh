@@ -66,6 +66,7 @@ sudo apt-get update -qq
 sudo apt-get install -y -qq \
   git \
   curl \
+  unzip \
   gnupg \
   pass \
   jq \
@@ -79,6 +80,21 @@ sudo apt-get install -y -qq \
   bat
 
 success "Core packages installed"
+
+# ---- lazygit (terminal UI for git) -----------------------------------------
+
+section "Installing lazygit"
+
+if command -v lazygit &>/dev/null; then
+  success "lazygit already installed: $(lazygit --version | head -1)"
+else
+  LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+  curl -sLo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+  tar -C /tmp -xzf /tmp/lazygit.tar.gz lazygit
+  sudo install /tmp/lazygit /usr/local/bin/lazygit
+  rm -f /tmp/lazygit.tar.gz /tmp/lazygit
+  success "lazygit installed"
+fi
 
 # ---- delta (better git diff) ------------------------------------------------
 

@@ -1,6 +1,8 @@
 # Starship prompt config
 # Requires a Nerd Font in your terminal (JetBrainsMono Nerd Font recommended)
 
+add_newline = true
+
 format = """
 $directory$git_branch$git_status$python$golang$nodejs$cmd_duration
 $character"""
@@ -41,3 +43,7 @@ format = "took [$duration](bold yellow) "
 [character]
 success_symbol = "[❯](bold green)"
 error_symbol = "[❯](bold red)"
+
+[os]
+disabled = false
+style = "bold white"
