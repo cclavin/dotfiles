@@ -71,9 +71,51 @@ sudo apt-get install -y -qq \
   jq \
   ripgrep \
   fzf \
-  xz-utils
+  xz-utils \
+  tmux \
+  zsh-autosuggestions \
+  zsh-syntax-highlighting \
+  eza \
+  bat
 
 success "Core packages installed"
+
+# ---- delta (better git diff) ------------------------------------------------
+
+section "Installing delta"
+
+if command -v delta &>/dev/null; then
+  success "delta already installed: $(delta --version)"
+else
+  DELTA_VERSION="0.18.2"
+  DELTA_DEB="git-delta_${DELTA_VERSION}_amd64.deb"
+  wget -qO "/tmp/${DELTA_DEB}" "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/${DELTA_DEB}"
+  sudo dpkg -i "/tmp/${DELTA_DEB}"
+  rm -f "/tmp/${DELTA_DEB}"
+  success "delta installed"
+fi
+
+# ---- starship prompt --------------------------------------------------------
+
+section "Installing starship"
+
+if command -v starship &>/dev/null; then
+  success "starship already installed: $(starship --version | head -1)"
+else
+  curl -sS https://starship.rs/install.sh | sh -s -- --yes
+  success "starship installed"
+fi
+
+# ---- zoxide (smart cd) ------------------------------------------------------
+
+section "Installing zoxide"
+
+if command -v zoxide &>/dev/null; then
+  success "zoxide already installed"
+else
+  curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+  success "zoxide installed to ~/.local/bin"
+fi
 
 # ---- gh CLI (GitHub's official apt repo) ------------------------------------
 
@@ -116,6 +158,8 @@ fi
 
 section "Symlinking config files"
 link "$DOTFILES/zsh/.zshrc"             "$HOME/.zshrc"
+link "$DOTFILES/tmux/.tmux.conf"        "$HOME/.tmux.conf"
+link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
 link "$DOTFILES/git/.gitconfig"         "$HOME/.gitconfig"
 link "$DOTFILES/.editorconfig"          "$HOME/.editorconfig"
 link "$DOTFILES/.prettierrc"            "$HOME/.prettierrc"

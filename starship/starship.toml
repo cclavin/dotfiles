@@ -1,0 +1,43 @@
+# Starship prompt config
+# Requires a Nerd Font in your terminal (JetBrainsMono Nerd Font recommended)
+
+format = """
+$directory$git_branch$git_status$python$golang$nodejs$cmd_duration
+$character"""
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+
+[git_status]
+style = "bold red"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+modified = "!${count}"
+untracked = "?${count}"
+staged = "+${count}"
+
+[python]
+symbol = " "
+style = "bold yellow"
+
+[golang]
+symbol = " "
+style = "bold cyan"
+
+[nodejs]
+symbol = " "
+style = "bold green"
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration](bold yellow) "
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
