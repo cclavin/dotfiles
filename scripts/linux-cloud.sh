@@ -1,7 +1,32 @@
 #!/usr/bin/env bash
 # scripts/linux-cloud.sh — Cloud/DevOps Toolchain installation for Linux/WSL.
+#
+# Usage: bash linux-cloud.sh [--skip-docker] [--skip-gcloud] [--skip-terraform] [--skip-go]
+#
+# Flags:
+#   --skip-docker     Skip Docker Engine install (use when Docker Desktop manages Docker)
+#   --skip-gcloud     Skip Google Cloud CLI install
+#   --skip-terraform  Skip Terraform CLI install
+#   --skip-go         Skip Go install
 
 set -euo pipefail
+
+# ---- Flags ------------------------------------------------------------------
+
+SKIP_DOCKER=false
+SKIP_GCLOUD=false
+SKIP_TERRAFORM=false
+SKIP_GO=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --skip-docker)    SKIP_DOCKER=true ;;
+    --skip-gcloud)    SKIP_GCLOUD=true ;;
+    --skip-terraform) SKIP_TERRAFORM=true ;;
+    --skip-go)        SKIP_GO=true ;;
+    *) echo "Unknown flag: $arg"; exit 1 ;;
+  esac
+done
 
 # ---- Helpers ----------------------------------------------------------------
 
@@ -65,13 +90,15 @@ install_go() {
   success "Go installed: $(go version)"
 }
 
-install_go
+if ! $SKIP_GO; then install_go; else info "Skipping Go (--skip-go)"; fi
 
 # ---- 2. Docker Engine -------------------------------------------------------
 section "Installing Docker Engine"
 
-if command -v docker &>/dev/null; then
-  success "Docker already installed"
+if $SKIP_DOCKER; then
+  info "Skipping Docker Engine (--skip-docker)"
+elif command -v docker &>/dev/null; then
+  success "Docker already available (Docker Desktop or existing install)"
 else
   info "Adding Docker repository..."
   curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | \
@@ -83,8 +110,6 @@ else
 
   sudo apt-get update -qq
   sudo apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-  
-  # Configure docker group
   sudo usermod -aG docker "$USER"
   success "Docker installed. (Re-login required to fully apply 'docker' group)"
 fi
@@ -92,7 +117,9 @@ fi
 # ---- 3. Google Cloud SDK ----------------------------------------------------
 section "Installing Google Cloud CLI"
 
-if command -v gcloud &>/dev/null; then
+if $SKIP_GCLOUD; then
+  info "Skipping Google Cloud CLI (--skip-gcloud)"
+elif command -v gcloud &>/dev/null; then
   success "Google Cloud CLI already installed"
 else
   info "Adding Google Cloud repository..."
@@ -111,7 +138,9 @@ fi
 # ---- 4. HashiCorp Terraform CLI ---------------------------------------------
 section "Installing HashiCorp Terraform CLI"
 
-if command -v terraform &>/dev/null; then
+if $SKIP_TERRAFORM; then
+  info "Skipping Terraform (--skip-terraform)"
+elif command -v terraform &>/dev/null; then
   success "Terraform already installed"
 else
   info "Adding HashiCorp repository..."
