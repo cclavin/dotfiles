@@ -32,6 +32,16 @@ link "$DOTFILES/.editorconfig"          "$HOME/.editorconfig"
 link "$DOTFILES/.prettierrc"            "$HOME/.prettierrc"
 link "$DOTFILES/claude/CLAUDE.md"       "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/claude/settings.json"   "$HOME/.claude/settings.json"
+link "$DOTFILES/claude/commands"        "$HOME/.claude/commands"
+
+# settings.local.json — create from example if missing (machine-local, not symlinked)
+if [ ! -f "$HOME/.claude/settings.local.json" ] && [ ! -L "$HOME/.claude/settings.local.json" ]; then
+  run mkdir -p "$HOME/.claude"
+  run cp "$DOTFILES/claude/settings.local.json.example" "$HOME/.claude/settings.local.json"
+  success "created ~/.claude/settings.local.json from example"
+else
+  info "~/.claude/settings.local.json already exists — skipping"
+fi
 
 # Agent Rules Polyfills (points IDEs to the repository source of truth)
 link "$DOTFILES/AGENTS.md"              "$DOTFILES/.cursorrules"

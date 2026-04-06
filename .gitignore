@@ -29,6 +29,9 @@ desktop.ini
 .github/copilot-instructions.md
 /CLAUDE.md
 
+# ---- Claude Code — machine-local (never commit) ----------------------------
+claude/settings.local.json
+
 # ---- Machine-local state (never commit) -------------------------------------
 # State lives at ~/.local/share/dotfiles/state.env — outside the repo.
 # This entry is a safety net in case of accidental placement.

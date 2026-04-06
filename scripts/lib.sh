@@ -47,8 +47,8 @@ link() {
     return
   fi
 
-  if [ -f "$dest" ]; then
-    warn "backing up existing file: $dest → $dest.bak"
+  if [ -f "$dest" ] || [ -d "$dest" ]; then
+    warn "backing up existing: $dest → $dest.bak"
     run mv "$dest" "$dest.bak"
   fi
 
