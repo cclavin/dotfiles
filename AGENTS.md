@@ -4,8 +4,12 @@ You are an AI assistant helping to maintain this dotfiles repository. When the u
 
 1. **Router Pattern**: The primary entry point is `bootstrap.sh`. Do not add extensive OS-specific logic directly to the bootstrap script. Instead, isolate logic inside `setup.sh` (macOS), `scripts/linux-core.sh` (Debian/WSL base), and `scripts/linux-cloud.sh` (Debian/WSL toolchain).
 2. **Secrets Rule**: NEVER store, hardcode, or commit secrets, tokens, or API keys in plain text in this repository. Secrets must always be dynamically requested from the OS credential store (macOS Keychain, Linux libsecret, pass, or Windows Credential Manager).
-3. **Symlinking Strategy**: When instructed to track a new configuration file, place it in the appropriate tool directory (e.g., `zsh/`, `git/`) and symlink it in both `setup.sh` and `scripts/linux-core.sh` using the provided `link()` helper function.
+3. **Symlinking Strategy**: When instructed to track a new configuration file, place it in the appropriate tool directory (e.g., `zsh/`, `git/`) and symlink it in both `setup.sh` and `scripts/linux-core.sh` using the `link()` helper from `scripts/lib.sh`.
 4. **Idempotency**: All scripts must be safely re-runnable. Always check if a package is installed (`command -v`), a directory exists, or a config line is already present before installing or mutating state. Avoid operations that fail if run twice.
 5. **No PPAs for Go**: When managing Go on Debian/Ubuntu, strictly use the authoritative `linux-amd64.tar.gz` script flow, never use `apt` or PPAs.
 6. **Modern APT Keyrings**: Any new debian apt repositories must use the modern `/etc/apt/keyrings/` structure via `gpg --dearmor`. Do not use the deprecated `apt-key` command.
 7. **Absolute/Parent Paths**: Always reference relative files dynamically using `$DOTFILES/...` as established in the script headers (e.g. `DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"`).
+8. **Shared Library**: All scripts must `source "$DOTFILES/scripts/lib.sh"` for shared helpers (`info`, `success`, `warn`, `section`, `link`, `run`, `detect_os`). Never duplicate these functions inline.
+9. **Version Pins**: All pinned tool versions belong in `scripts/versions.sh`. Source it and use the variables; never hardcode version strings in individual scripts.
+10. **State Tracking**: Machine-local state is stored in `~/.local/share/dotfiles/state.env` via `scripts/state.sh`. Never commit state files. Never assume a clean install — check state before acting.
+11. **Migrations**: Structural changes between versions belong in numbered files under `migrations/NNN-description.sh`. Migrations are applied once (tracked in state) and must be idempotent. Never write destructive migrations.

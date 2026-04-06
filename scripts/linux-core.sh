@@ -3,34 +3,9 @@
 
 set -euo pipefail
 
-# Resolve parent directory assuming we are currently in /scripts/
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-
-# ---- Helpers ----------------------------------------------------------------
-
-info()    { echo "  [·] $*"; }
-success() { echo "  [✓] $*"; }
-warn()    { echo "  [!] $*" >&2; }
-section() { echo ""; echo "── $* ──────────────────────────────────────────"; }
-
-link() {
-  local src="$1"
-  local dest="$2"
-
-  if [ -L "$dest" ]; then
-    success "already linked: $dest"
-    return
-  fi
-
-  if [ -f "$dest" ]; then
-    warn "backing up existing file: $dest → $dest.bak"
-    mv "$dest" "$dest.bak"
-  fi
-
-  mkdir -p "$(dirname "$dest")"
-  ln -s "$src" "$dest"
-  success "linked: $(basename "$dest")"
-}
+source "$DOTFILES/scripts/lib.sh"
+source "$DOTFILES/scripts/versions.sh"
 
 # ---- Guard: Linux only ------------------------------------------------------
 
@@ -103,7 +78,6 @@ section "Installing delta"
 if command -v delta &>/dev/null; then
   success "delta already installed: $(delta --version)"
 else
-  DELTA_VERSION="0.18.2"
   DELTA_DEB="git-delta_${DELTA_VERSION}_amd64.deb"
   wget -qO "/tmp/${DELTA_DEB}" "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/${DELTA_DEB}"
   sudo dpkg -i "/tmp/${DELTA_DEB}"

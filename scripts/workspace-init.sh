@@ -8,12 +8,8 @@
 
 set -euo pipefail
 
-# ---- Helpers ----------------------------------------------------------------
-
-info()    { echo "  [·] $*"; }
-success() { echo "  [✓] $*"; }
-warn()    { echo "  [!] $*" >&2; }
-section() { echo ""; echo "── $* ──────────────────────────────────────────"; }
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$DOTFILES/scripts/lib.sh"
 
 # ---- Paths ------------------------------------------------------------------
 

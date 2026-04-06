@@ -11,6 +11,10 @@
 
 set -euo pipefail
 
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$DOTFILES/scripts/lib.sh"
+source "$DOTFILES/scripts/versions.sh"
+
 # ---- Flags ------------------------------------------------------------------
 
 SKIP_DOCKER=false
@@ -24,16 +28,9 @@ for arg in "$@"; do
     --skip-gcloud)    SKIP_GCLOUD=true ;;
     --skip-terraform) SKIP_TERRAFORM=true ;;
     --skip-go)        SKIP_GO=true ;;
-    *) echo "Unknown flag: $arg"; exit 1 ;;
+    *) warn "Unknown flag: $arg"; exit 1 ;;
   esac
 done
-
-# ---- Helpers ----------------------------------------------------------------
-
-info()    { echo "  [·] $*"; }
-success() { echo "  [✓] $*"; }
-warn()    { echo "  [!] $*" >&2; }
-section() { echo ""; echo "── $* ──────────────────────────────────────────"; }
 
 # ---- Guard: Linux only ------------------------------------------------------
 
@@ -59,7 +56,6 @@ sudo install -m 0755 -d /etc/apt/keyrings
 section "Installing Go"
 
 install_go() {
-  local GO_VERSION="1.22.1"
   local GO_TAR="go${GO_VERSION}.linux-amd64.tar.gz"
   local GO_URL="https://go.dev/dl/${GO_TAR}"
   

@@ -134,3 +134,6 @@ sync-code() {
   echo ""
   echo "Done."
 }
+
+# Machine-local shell customizations (not tracked in dotfiles)
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

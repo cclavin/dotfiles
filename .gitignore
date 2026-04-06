@@ -28,3 +28,8 @@ desktop.ini
 .windsurfrules
 .github/copilot-instructions.md
 /CLAUDE.md
+
+# ---- Machine-local state (never commit) -------------------------------------
+# State lives at ~/.local/share/dotfiles/state.env — outside the repo.
+# This entry is a safety net in case of accidental placement.
+state.env

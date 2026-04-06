@@ -13,33 +13,7 @@
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# ---- Helpers ----------------------------------------------------------------
-
-info()    { echo "  [·] $*"; }
-success() { echo "  [✓] $*"; }
-warn()    { echo "  [!] $*" >&2; }
-section() { echo ""; echo "── $* ──────────────────────────────────────────"; }
-
-# Create a symlink; backs up any existing plain file first.
-link() {
-  local src="$1"
-  local dest="$2"
-
-  if [ -L "$dest" ]; then
-    success "already linked: $dest"
-    return
-  fi
-
-  if [ -f "$dest" ]; then
-    warn "backing up existing file: $dest → $dest.bak"
-    mv "$dest" "$dest.bak"
-  fi
-
-  mkdir -p "$(dirname "$dest")"
-  ln -s "$src" "$dest"
-  success "linked: $(basename "$dest")"
-}
+source "$DOTFILES/scripts/lib.sh"
 
 # ---- Guard: macOS only ------------------------------------------------------
 
