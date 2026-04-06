@@ -14,7 +14,7 @@ _DOTFILES_VERSIONS_LOADED=1
 # ---- Pinned Versions --------------------------------------------------------
 
 DELTA_VERSION="0.18.2"
-GO_VERSION="1.22.1"
+GO_VERSION="1.26.1"
 
 # Future additions:
 # LAZYGIT_VERSION=""    # currently fetched from GitHub API (latest)
