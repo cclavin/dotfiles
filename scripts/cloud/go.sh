@@ -19,6 +19,11 @@ if command -v go &>/dev/null && go version | grep -q "go1.22"; then
   exit 0
 fi
 
+if is_dry_run; then
+  info "[dry-run] would install Go ${GO_VERSION} from go.dev/dl (linux-amd64 tarball to /usr/local/go)"
+  exit 0
+fi
+
 GO_TAR="go${GO_VERSION}.linux-amd64.tar.gz"
 GO_URL="https://go.dev/dl/${GO_TAR}"
 

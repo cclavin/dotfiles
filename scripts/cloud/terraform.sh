@@ -2,7 +2,7 @@
 # scripts/cloud/terraform.sh — Install HashiCorp Terraform from HashiCorp's apt repo.
 #
 # Called by scripts/linux-cloud.sh. Can also be run standalone.
-# Expects DISTRO_CODENAME to be set, or sets it if missing.
+# Respects DISTRO_CODENAME exported by linux-cloud.sh if set.
 
 set -euo pipefail
 
@@ -13,6 +13,11 @@ section "Installing HashiCorp Terraform CLI"
 
 if command -v terraform &>/dev/null; then
   success "Terraform already installed"
+  exit 0
+fi
+
+if is_dry_run; then
+  info "[dry-run] would install Terraform from apt.releases.hashicorp.com apt repo"
   exit 0
 fi
 

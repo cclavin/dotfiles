@@ -15,6 +15,11 @@ if command -v gcloud &>/dev/null; then
   exit 0
 fi
 
+if is_dry_run; then
+  info "[dry-run] would install Google Cloud CLI from packages.cloud.google.com apt repo"
+  exit 0
+fi
+
 info "Adding Google Cloud repository..."
 curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
   sudo gpg --dearmor --yes -o /etc/apt/keyrings/cloud.google.gpg

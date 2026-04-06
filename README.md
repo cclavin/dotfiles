@@ -2,7 +2,7 @@
 
 Personal configuration files for macOS, Debian Linux, and WSL2 (Windows).
 
-This repository handles automated bootstrapping of my core terminal environment and development toolchain. It utilizes a highly modular **Router Pattern**, dynamic symlinking, and strict OS credential store secrets management to provide a seamless, idempotent setup experience across wildly different machines.
+This repository handles automated bootstrapping of my core terminal environment and development toolchain. It uses a modular **router pattern**, composable **machine roles**, a **migration framework**, and an **audit system** to provide a reproducible, idempotent setup across different machines and environments.
 
 ---
 
@@ -24,7 +24,8 @@ This repository handles automated bootstrapping of my core terminal environment 
 | File | Purpose |
 |------|---------|
 | `~/.gitconfig.local` | Credential helper, GPG key, work email overrides |
-| `~/.zshrc.local` | Machine-specific shell additions (source from .zshrc if needed) |
+| `~/.zshrc.local` | Machine-specific shell additions (auto-sourced by `.zshrc`) |
+| `~/.local/share/dotfiles/state.env` | Installed version, role, migration history |
 
 ---
 
@@ -107,9 +108,118 @@ fnm install 20 && fnm use 20
 npm install -g @anthropic-ai/claude-code
 ```
 
-**Important WSL2 path note:** keep your project files under `~/` (the Linux
-filesystem), not under `/mnt/c/`. File I/O from WSL on Windows-mounted drives
-is significantly slower.
+---
+
+## Bootstrap flags
+
+`bootstrap.sh` supports flags for non-interactive and CI use. Without flags, it behaves interactively (same as before).
+
+| Flag | Effect |
+|------|--------|
+| `--role <name>` | Apply a machine role after platform setup |
+| `--cloud` | Install cloud toolchain without prompting |
+| `--no-cloud` | Skip cloud toolchain without prompting |
+| `--yes`, `-y` | Auto-accept all interactive prompts |
+| `--dry-run` | Preview what would be installed — no changes made |
+| `--audit` | Validate current system state and exit |
+| `--style minimal\|enhanced` | Apply optional styling (Nerd Fonts etc.) |
+| `--help` | Show usage |
+
+```bash
+# Preview what a fresh setup would do
+./bootstrap.sh --dry-run --no-cloud
+
+# Non-interactive WSL setup with cloud tools
+./bootstrap.sh --role wsl-dev --yes
+
+# Check if an existing machine is correctly configured
+./bootstrap.sh --audit
+```
+
+---
+
+## Machine roles
+
+Roles are composable profiles that orchestrate the platform scripts. They are additive — running a role on an already-set-up machine is safe (all scripts are idempotent).
+
+| Role | What it installs |
+|------|-----------------|
+| `wsl-dev` | Core Linux tools + cloud stack (Docker skipped — Docker Desktop handles it) |
+| `linux-dev` | Core Linux tools only |
+| `macos-workstation` | macOS dotfiles + all Homebrew packages |
+| `cloud-admin` | Core Linux tools + full cloud stack (Go, Docker, GCP CLI, Terraform) |
+
+```bash
+./bootstrap.sh --role cloud-admin --yes
+```
+
+Role state is saved to `~/.local/share/dotfiles/state.env` and used by `--audit` to validate role-specific requirements.
+
+---
+
+## Upgrading an existing machine
+
+```bash
+cd ~/dotfiles
+git pull
+
+# Run bootstrap — detects existing state, applies only pending migrations
+./bootstrap.sh --no-cloud   # or --cloud if you want cloud tools too
+
+# Validate everything is correct
+./bootstrap.sh --audit
+```
+
+The bootstrap run:
+1. Applies any pending migrations (structural changes between versions)
+2. Re-runs platform setup (idempotent — only installs what's missing)
+3. Validates the final state
+
+---
+
+## Audit / validation
+
+Check that a machine is correctly configured without making changes:
+
+```bash
+./bootstrap.sh --audit
+# or
+bash scripts/validate.sh
+```
+
+Validates:
+- Required commands are installed
+- All config symlinks are in place
+- Git config is readable and `~/.gitconfig.local` exists
+- Workspace directories exist (`~/workspace/code`, `~/workspace/vault`)
+- Role-specific tools (if a role is stored in state)
+
+---
+
+## Architecture
+
+```
+bootstrap.sh          ← entrypoint: flags, migrate, OS route, role, validate
+  scripts/lib.sh      ← shared helpers (info, link, run, is_dry_run, detect_os)
+  scripts/versions.sh ← pinned tool versions (single source of truth)
+  scripts/state.sh    ← local state (~/.local/share/dotfiles/state.env)
+  scripts/migrate.sh  ← apply pending numbered migrations
+  scripts/validate.sh ← audit system state
+  scripts/style.sh    ← optional styling (--style enhanced installs Nerd Fonts)
+  setup.sh            ← macOS platform setup
+  scripts/linux-core.sh    ← Linux/WSL core tools + symlinks
+  scripts/linux-cloud.sh   ← cloud toolchain dispatcher
+    scripts/cloud/go.sh
+    scripts/cloud/docker.sh
+    scripts/cloud/gcp.sh
+    scripts/cloud/terraform.sh
+  roles/wsl-dev.sh
+  roles/linux-dev.sh
+  roles/macos-workstation.sh
+  roles/cloud-admin.sh
+  migrations/001-init-state.sh
+  migrations/002-zshrc-local-support.sh
+```
 
 ---
 
@@ -129,27 +239,23 @@ files on disk.
 for the current OS. If no store is available the variable is simply unset — no
 error, no plain-text fallback.
 
-**Security properties of `pass`:**
-- Each secret is a GPG-encrypted file
-- The password store itself can be tracked in a private git repo for backup
-- Works on macOS, Linux, and WSL with no native integration required
-- Requires a GPG key (the same key can be used for commit signing)
-
 ---
 
-## 🤖 AI & Agents
+## AI & Agents
 
-This repository is optimized to guide and constrain AI coding assistants (like Claude Code, Cursor, and GitHub Copilot). 
+This repository is optimized to guide and constrain AI coding assistants (Claude Code, Cursor, GitHub Copilot).
 
 ### Global Rules (`claude/CLAUDE.md`)
-The setup scripts automatically symlink `claude/CLAUDE.md` to `~/.claude/CLAUDE.md`. This sets the baseline global communication, coding, and git standards for any AI agent executing on your system, regardless of what project they are operating in.
+The setup scripts symlink `claude/CLAUDE.md` to `~/.claude/CLAUDE.md`, setting baseline communication, coding, and git standards for any AI agent executing on the machine.
 
 ### Repository Rules (`AGENTS.md`)
-To ensure AI agents do not break the architecture of *these dotfiles*, there is an `AGENTS.md` file at the root. The bootstrap script automatically symlinks this to `.cursorrules`, `.windsurfrules`, `.github/copilot-instructions.md`, and local `CLAUDE.md`. If you ask an AI to "add a new tool to my dotfiles", it automatically reads the rules from its respective file and knows how to:
-- Respect the `bootstrap.sh` router pattern.
-- Avoid hardcoding secrets.
-- Use the `link()` idempotency helper.
-- Avoid deprecated tools like `apt-key` or Go PPAs.
+`AGENTS.md` at the repo root is polyfilled to `.cursorrules`, `.windsurfrules`, `.github/copilot-instructions.md`, and local `CLAUDE.md`. It encodes 11 architectural rules including the router pattern, shared library usage, version pin management, state tracking, and migration conventions.
+
+### Scaffolding AI rules into projects (`bin/ai-init`)
+```bash
+ai-init go       # compile global standards + Go template into .cursorrules
+ai-init pios --stack go-api  # fetch rules from github.com/cclavin/PIOS
+```
 
 ---
 
@@ -171,8 +277,6 @@ $EDITOR ~/.gitconfig.local
 ---
 
 ## GPG commit signing (optional)
-
-Commit signing proves commits genuinely came from you.
 
 ```bash
 # 1. Generate a key
@@ -198,15 +302,14 @@ gpg --armor --export XXXXXXXXXXXXXXXX | gh gpg-key add -
 ## Adding a new config file
 
 ```bash
-# Move the file into dotfiles
+# 1. Move the file into dotfiles
 mv ~/.some-config ~/dotfiles/tool/.some-config
 
-# Create the symlink
-ln -s ~/dotfiles/tool/.some-config ~/.some-config
+# 2. Add link() calls in both setup.sh (macOS) and scripts/linux-core.sh (Linux)
+#    The link() helper is in scripts/lib.sh and is already available in both scripts
+link "$DOTFILES/tool/.some-config" "$HOME/.some-config"
 
-# Add the link() call to both setup.sh and scripts/linux-core.sh
-
-# Commit
+# 3. Commit
 cd ~/dotfiles
 git add tool/.some-config setup.sh scripts/linux-core.sh
 git commit -m "feat(tool): track .some-config"
@@ -215,11 +318,16 @@ git push
 
 ---
 
-## Updating on an existing machine
+## Running tests
 
 ```bash
-cd ~/dotfiles
-git pull
-# Symlinks update automatically — no re-run needed unless new files were added
-source ~/.zshrc
+# Run the full test suite (Docker preferred, WSL2 fallback)
+bash tests/run.sh
+
+# Or directly (requires a bash environment)
+bash tests/test.sh
 ```
+
+Tests cover: shared library functions, version pin format, state get/set/upsert,
+migration apply/skip/halt, bootstrap flag parsing, end-to-end dry-run, and
+validation output — without performing any real installs.

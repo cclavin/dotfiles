@@ -30,6 +30,10 @@ run() {
   "$@"
 }
 
+# Returns 0 (true) when DRY_RUN=true. Use in if-blocks for multi-command sections.
+# Usage: if is_dry_run; then info "[dry-run] ..."; else <real commands>; fi
+is_dry_run() { [[ "${DRY_RUN:-false}" == "true" ]]; }
+
 # ---- Symlink helper ---------------------------------------------------------
 # Creates a symlink from src to dest.
 # - If dest is already a symlink, skips (idempotent).

@@ -29,7 +29,7 @@ for migration in "$MIGRATIONS_DIR"/[0-9][0-9][0-9]-*.sh; do
 
   basename_="$(basename "$migration")"
   number="${basename_%%-*}"   # extract "001" from "001-some-name.sh"
-  ((PENDING++))
+  PENDING=$((PENDING + 1))
 
   # Check if already applied (match ",NNN," in ",applied,list,")
   if echo ",${APPLIED}," | grep -q ",${number},"; then
@@ -46,7 +46,7 @@ for migration in "$MIGRATIONS_DIR"/[0-9][0-9][0-9]-*.sh; do
       APPLIED="${APPLIED},${number}"
     fi
     state_set "MIGRATIONS_APPLIED" "$APPLIED"
-    ((APPLIED_NOW++))
+    APPLIED_NOW=$((APPLIED_NOW + 1))
     success "Migration $basename_ applied"
   else
     warn "Migration $basename_ FAILED — stopping"

@@ -2,7 +2,7 @@
 # scripts/cloud/docker.sh — Install Docker Engine from Docker's official apt repo.
 #
 # Called by scripts/linux-cloud.sh. Can also be run standalone.
-# Expects DISTRO_ID and DISTRO_CODENAME to be set, or sets them if missing.
+# Respects DISTRO_ID and DISTRO_CODENAME exported by linux-cloud.sh if set.
 
 set -euo pipefail
 
@@ -13,6 +13,11 @@ section "Installing Docker Engine"
 
 if command -v docker &>/dev/null; then
   success "Docker already available (Docker Desktop or existing install)"
+  exit 0
+fi
+
+if is_dry_run; then
+  info "[dry-run] would install Docker Engine from download.docker.com apt repo"
   exit 0
 fi
 

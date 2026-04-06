@@ -27,7 +27,7 @@ _init_state() {
 state_get() {
   local key="$1"
   _init_state
-  grep "^${key}=" "$STATE_FILE" 2>/dev/null | head -1 | cut -d'=' -f2-
+  grep "^${key}=" "$STATE_FILE" 2>/dev/null | head -1 | cut -d'=' -f2- || true
 }
 
 # Write a key=value pair (upsert — replaces any existing entry for that key).

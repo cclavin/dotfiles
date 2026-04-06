@@ -35,26 +35,27 @@ if ! command -v sudo &>/dev/null; then
   warn "sudo not found — you may need to run as root or install sudo"
 fi
 
-sudo apt-get update -qq
-
-# Core tools
-sudo apt-get install -y -qq \
-  git \
-  curl \
-  unzip \
-  gnupg \
-  pass \
-  jq \
-  ripgrep \
-  fzf \
-  xz-utils \
-  tmux \
-  zsh-autosuggestions \
-  zsh-syntax-highlighting \
-  eza \
-  bat
-
-success "Core packages installed"
+if is_dry_run; then
+  info "[dry-run] would install via apt: git curl unzip gnupg pass jq ripgrep fzf xz-utils tmux zsh-autosuggestions zsh-syntax-highlighting eza bat"
+else
+  sudo apt-get update -qq
+  sudo apt-get install -y -qq \
+    git \
+    curl \
+    unzip \
+    gnupg \
+    pass \
+    jq \
+    ripgrep \
+    fzf \
+    xz-utils \
+    tmux \
+    zsh-autosuggestions \
+    zsh-syntax-highlighting \
+    eza \
+    bat
+  success "Core packages installed"
+fi
 
 # ---- lazygit (terminal UI for git) -----------------------------------------
 
@@ -62,6 +63,8 @@ section "Installing lazygit"
 
 if command -v lazygit &>/dev/null; then
   success "lazygit already installed: $(lazygit --version | head -1)"
+elif is_dry_run; then
+  info "[dry-run] would install lazygit (latest release from GitHub)"
 else
   LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
   curl -sLo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
@@ -77,6 +80,8 @@ section "Installing delta"
 
 if command -v delta &>/dev/null; then
   success "delta already installed: $(delta --version)"
+elif is_dry_run; then
+  info "[dry-run] would install delta v${DELTA_VERSION} (.deb from GitHub)"
 else
   DELTA_DEB="git-delta_${DELTA_VERSION}_amd64.deb"
   wget -qO "/tmp/${DELTA_DEB}" "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/${DELTA_DEB}"
@@ -91,6 +96,8 @@ section "Installing starship"
 
 if command -v starship &>/dev/null; then
   success "starship already installed: $(starship --version | head -1)"
+elif is_dry_run; then
+  info "[dry-run] would install starship via starship.rs/install.sh"
 else
   curl -sS https://starship.rs/install.sh | sh -s -- --yes
   success "starship installed"
@@ -102,6 +109,8 @@ section "Installing zoxide"
 
 if command -v zoxide &>/dev/null; then
   success "zoxide already installed"
+elif is_dry_run; then
+  info "[dry-run] would install zoxide via ajeetdsouza/zoxide install.sh"
 else
   curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
   success "zoxide installed to ~/.local/bin"
@@ -113,6 +122,8 @@ section "Installing gh CLI"
 
 if command -v gh &>/dev/null; then
   success "gh already installed: $(gh --version | head -1)"
+elif is_dry_run; then
+  info "[dry-run] would install gh CLI from cli.github.com apt repo"
 else
   curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
@@ -130,6 +141,8 @@ section "Installing fnm"
 
 if command -v fnm &>/dev/null; then
   success "fnm already installed: $(fnm --version)"
+elif is_dry_run; then
+  info "[dry-run] would install fnm to ~/.local/bin"
 else
   curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "$HOME/.local/bin" --skip-shell
   success "fnm installed to ~/.local/bin"
@@ -140,8 +153,12 @@ fi
 
 if ! command -v zsh &>/dev/null; then
   section "Installing zsh"
-  sudo apt-get install -y -qq zsh
-  info "zsh installed. To set as default shell: chsh -s \$(which zsh)"
+  if is_dry_run; then
+    info "[dry-run] would install zsh via apt"
+  else
+    sudo apt-get install -y -qq zsh
+    info "zsh installed. To set as default shell: chsh -s \$(which zsh)"
+  fi
 fi
 
 # ---- Symlinks ---------------------------------------------------------------
@@ -169,42 +186,45 @@ link "$DOTFILES/bin/ai-init"            "$HOME/.local/bin/ai-init"
 
 section "Git config & templates"
 
-# Configure Git Templates (Strategy A)
-git config --global init.templatedir "$DOTFILES/agent-base/git-templates"
+run git config --global init.templatedir "$DOTFILES/agent-base/git-templates"
 success "Git templates configured to use dotfiles/agent-base/git-templates"
 
 GITCONFIG_LOCAL="$HOME/.gitconfig.local"
 if [ ! -f "$GITCONFIG_LOCAL" ]; then
-  cp "$DOTFILES/git/.gitconfig.local.example" "$GITCONFIG_LOCAL"
+  if is_dry_run; then
+    info "[dry-run] would create ~/.gitconfig.local with credential helper"
+  else
+    cp "$DOTFILES/git/.gitconfig.local.example" "$GITCONFIG_LOCAL"
 
-  # On WSL2: use Git Credential Manager from Windows if available
-  if $IS_WSL && command -v "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe" &>/dev/null; then
-    cat >> "$GITCONFIG_LOCAL" <<'EOF'
+    # On WSL2: use Git Credential Manager from Windows if available
+    if $IS_WSL && command -v "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe" &>/dev/null; then
+      cat >> "$GITCONFIG_LOCAL" <<'EOF'
 
 [credential]
 	helper = /mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe
 EOF
-    success "~/.gitconfig.local created — using Windows Git Credential Manager (WSL)"
+      success "~/.gitconfig.local created — using Windows Git Credential Manager (WSL)"
 
-  # Try libsecret first (GNOME keyring, good for desktop Debian)
-  elif [ -f "/usr/share/doc/git/contrib/credential/libsecret/git-credential-libsecret" ]; then
-    cat >> "$GITCONFIG_LOCAL" <<'EOF'
+    # Try libsecret first (GNOME keyring, good for desktop Debian)
+    elif [ -f "/usr/share/doc/git/contrib/credential/libsecret/git-credential-libsecret" ]; then
+      cat >> "$GITCONFIG_LOCAL" <<'EOF'
 
 [credential]
 	helper = /usr/share/doc/git/contrib/credential/libsecret/git-credential-libsecret
 EOF
-    success "~/.gitconfig.local created — using libsecret credential helper"
+      success "~/.gitconfig.local created — using libsecret credential helper"
 
-  # Fall back to pass (GPG store) — works headless and in WSL
-  else
-    cat >> "$GITCONFIG_LOCAL" <<'EOF'
+    # Fall back to pass (GPG store) — works headless and in WSL
+    else
+      cat >> "$GITCONFIG_LOCAL" <<'EOF'
 
 # git-credential-pass requires: pass init <gpg-key-id>
 # Then: sudo apt install git-credential-pass  (or build from source)
 # [credential]
 # 	helper = pass
 EOF
-    warn "~/.gitconfig.local created — credential helper commented out (see instructions below)"
+      warn "~/.gitconfig.local created — credential helper commented out (see instructions below)"
+    fi
   fi
 else
   info "~/.gitconfig.local already exists — skipping"

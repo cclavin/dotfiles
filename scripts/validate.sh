@@ -25,7 +25,7 @@ check_cmd() {
     success "command: $name"
   else
     warn "FAIL command not found: $name"
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
   fi
 }
 
@@ -35,7 +35,7 @@ check_link() {
     success "symlink: $path"
   else
     warn "FAIL symlink missing: $path"
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
   fi
 }
 
@@ -46,7 +46,7 @@ check_file() {
     success "file: $desc"
   else
     warn "FAIL file missing: $desc"
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
   fi
 }
 
@@ -56,7 +56,7 @@ check_dir() {
     success "dir: $path"
   else
     warn "FAIL directory missing: $path"
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
   fi
 }
 
@@ -66,7 +66,7 @@ check_git_config() {
     success "git config: $key = $(git config "$key")"
   else
     warn "FAIL git config not set: $key"
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
   fi
 }
 
