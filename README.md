@@ -15,8 +15,12 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `git/.gitconfig.local.example` | (template only) | Machine-specific overrides |
 | `.editorconfig` | `~/.editorconfig` | Universal editor whitespace/encoding rules |
 | `.prettierrc` | `~/.prettierrc` | Default Prettier formatting |
+| `starship/starship.toml` | `~/.config/starship.toml` | Starship prompt config |
+| `tmux/.tmux.conf` | `~/.tmux.conf` | Tmux config (Catppuccin theme, vi keys) |
 | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global AI Agent instructions |
 | `claude/settings.json` | `~/.claude/settings.json` | Claude Code permissions |
+| `claude/settings.local.json.example` | (template only) | Machine-local Claude permission overrides |
+| `claude/commands/` | `~/.claude/commands/` | Custom slash commands (`/pickup`, `/signoff`) |
 | `Brewfile` | (not symlinked) | macOS tool list for `brew bundle` |
 | `AGENTS.md` | (repo polyfills) | Repository-specific AI Agent instructions |
 
@@ -25,6 +29,7 @@ This repository handles automated bootstrapping of my core terminal environment 
 |------|---------|
 | `~/.gitconfig.local` | Credential helper, GPG key, work email overrides |
 | `~/.zshrc.local` | Machine-specific shell additions (auto-sourced by `.zshrc`) |
+| `~/.claude/settings.local.json` | Machine-local Claude permission overrides |
 | `~/.local/share/dotfiles/state.env` | Installed version, role, migration history |
 
 ---
@@ -38,9 +43,8 @@ This repository handles automated bootstrapping of my core terminal environment 
 # 2. Clone dotfiles
 git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
 
-# 3. Run setup
-cd ~/dotfiles
-bash bootstrap.sh
+# 3. Run setup (use bash explicitly — never sudo)
+bash ~/dotfiles/bootstrap.sh --no-cloud
 
 # 4. Reload shell
 source ~/.zshrc
@@ -51,6 +55,9 @@ gh auth login
 # 6. Store API keys in macOS Keychain
 security add-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w
 # Paste the key value when prompted — it will not echo
+
+# 7. Set terminal font to JetBrainsMono Nerd Font (for Starship glyphs)
+#    Terminal > Preferences > Profiles > Font
 ```
 
 ---
@@ -162,12 +169,8 @@ Role state is saved to `~/.local/share/dotfiles/state.env` and used by `--audit`
 ```bash
 cd ~/dotfiles
 git pull
-
-# Run bootstrap — detects existing state, applies only pending migrations
-./bootstrap.sh --no-cloud   # or --cloud if you want cloud tools too
-
-# Validate everything is correct
-./bootstrap.sh --audit
+bash bootstrap.sh --no-cloud   # or --cloud if you want cloud tools too
+bash bootstrap.sh --audit
 ```
 
 The bootstrap run:
@@ -296,6 +299,26 @@ echo '  gpgsign = true' >> ~/.gitconfig.local
 # 4. Add public key to GitHub
 gpg --armor --export XXXXXXXXXXXXXXXX | gh gpg-key add -
 ```
+
+---
+
+## Workspace
+
+All machines use `~/workspace/code` as the canonical project root. The `sync-code` shell function fetches and shows status for every repo in that directory, flags uncommitted changes, then pulls on confirmation:
+
+```bash
+sync-code
+```
+
+Use `cw` to jump to the workspace root from anywhere:
+
+```bash
+cw   # cd ~/workspace/code
+```
+
+### Obsidian vault
+
+`~/workspace/vault` is created by bootstrap but not managed here. Recommended sync approach is **Syncthing** (free, P2P, no cloud relay) — install separately per machine and point it at `~/workspace/vault`. Not included in dotfiles as it requires per-machine peer configuration.
 
 ---
 

@@ -110,13 +110,26 @@ sync-code() {
 
   echo ""
   echo "── Repos in workspace/code ──────────────────────────"
+  local dirty_repos=()
   for repo in "${repos[@]}"; do
-    local name status
+    local name tracking dirty
     name="$(basename "$repo")"
     git -C "$repo" fetch --quiet 2>/dev/null
-    status="$(git -C "$repo" status -sb 2>/dev/null | head -1)"
-    echo "  $name  →  $status"
+    tracking="$(git -C "$repo" status -sb 2>/dev/null | head -1)"
+    dirty="$(git -C "$repo" status --short 2>/dev/null)"
+    if [[ -n "$dirty" ]]; then
+      echo "  $name  →  $tracking  [UNCOMMITTED CHANGES]"
+      dirty_repos+=("$name")
+    else
+      echo "  $name  →  $tracking"
+    fi
   done
+
+  if [[ ${#dirty_repos[@]} -gt 0 ]]; then
+    echo ""
+    echo "  Repos with uncommitted changes: ${dirty_repos[*]}"
+    echo "  Commit or stash before pulling to avoid conflicts."
+  fi
 
   echo ""
   read -r -p "Pull all repos? [y/N] " -n 1 answer
