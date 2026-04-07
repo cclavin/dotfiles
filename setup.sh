@@ -58,8 +58,9 @@ link "$DOTFILES/bin/ai-init"            "$HOME/.local/bin/ai-init"
 
 section "Git config & templates"
 
-# Configure Git Templates (Strategy A)
-git config --global init.templatedir "$DOTFILES/agent-base/git-templates"
+# Configure Git Templates (Strategy A) — written to .gitconfig.local, not the
+# tracked .gitconfig, because the path is machine-specific.
+git config --file "$HOME/.gitconfig.local" init.templatedir "$DOTFILES/agent-base/git-templates"
 success "Git templates configured to use dotfiles/agent-base/git-templates"
 
 GITCONFIG_LOCAL="$HOME/.gitconfig.local"
