@@ -62,8 +62,10 @@ check_dir() {
 
 check_git_config() {
   local key="$1"
-  if git config "$key" &>/dev/null; then
-    success "git config: $key = $(git config "$key")"
+  local value
+  value="$(git config --global "$key" 2>/dev/null)"
+  if [[ -n "$value" ]]; then
+    success "git config: $key = $value"
   else
     warn "FAIL git config not set: $key"
     ERRORS=$((ERRORS + 1))
@@ -109,23 +111,21 @@ check_link "$HOME/.prettierrc"
 check_link "$HOME/.claude/CLAUDE.md"
 check_link "$HOME/.claude/settings.json"
 
-if $IS_LINUX; then
-  check_link "$HOME/.tmux.conf"
-  check_link "$HOME/.config/starship.toml"
-fi
+check_link "$HOME/.tmux.conf"
+check_link "$HOME/.config/starship.toml"
 
 # ---- Config validity --------------------------------------------------------
 
 section "Config validity"
 
-if git config --list &>/dev/null; then
+if git config --global user.name &>/dev/null; then
   success "git config readable"
 else
-  warn "FAIL git config --list failed"
+  warn "FAIL git config not readable"
   ((ERRORS++))
 fi
 
-if command -v starship &>/dev/null && starship config &>/dev/null 2>&1; then
+if command -v starship &>/dev/null && starship print-config &>/dev/null 2>&1; then
   success "starship config valid"
 elif command -v starship &>/dev/null; then
   warn "FAIL starship config invalid"
