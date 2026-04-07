@@ -2,6 +2,7 @@
 # Requires a Nerd Font in your terminal (JetBrainsMono Nerd Font recommended)
 
 add_newline = true
+command_timeout = 2000
 
 format = """
 $directory$git_branch$git_status$python$golang$nodejs$cmd_duration
