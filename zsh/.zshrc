@@ -16,14 +16,18 @@ if command -v zoxide &>/dev/null; then
 fi
 
 # fzf key bindings (Ctrl+R fuzzy history, Ctrl+T file search)
+[[ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ]] && source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+[[ -f /usr/local/opt/fzf/shell/key-bindings.zsh ]]    && source /usr/local/opt/fzf/shell/key-bindings.zsh
 [[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]] && source /usr/share/doc/fzf/examples/key-bindings.zsh
-[[ -f /usr/share/fzf/key-bindings.zsh ]] && source /usr/share/fzf/key-bindings.zsh
+[[ -f /usr/share/fzf/key-bindings.zsh ]]               && source /usr/share/fzf/key-bindings.zsh
 
 # zsh-autosuggestions (grey ghost completions as you type)
-[[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]          && source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # zsh-syntax-highlighting (must be sourced last)
-[[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[[ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]          && source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Better ls/cat (eza + bat — graceful fallback if not installed)
 if command -v eza &>/dev/null; then
@@ -37,12 +41,8 @@ elif command -v bat &>/dev/null; then
   alias cat='bat --style=plain --paging=never'
 fi
 
-# Claude Code - start in workspace (path differs macOS vs Linux/WSL)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  alias claude='cd ~/Documents/workspace/code && claude'
-else
-  alias claude='cd ~/workspace/code && claude'
-fi
+# Workspace navigation
+alias cw='cd ~/workspace/code'
 
 # ---- Secure secret loading --------------------------------------------------
 # Loads a secret from the OS-appropriate credential store.
@@ -78,8 +78,7 @@ new-project() {
   local visibility="--private"
   [[ "$*" == *--public* ]] && visibility="--public"
 
-  local code_base
-  [[ "$OSTYPE" == "darwin"* ]] && code_base="$HOME/Documents/workspace/code" || code_base="$HOME/workspace/code"
+  local code_base="$HOME/workspace/code"
 
   local dest="$code_base/$name"
   if [[ -d "$dest" ]]; then
@@ -98,8 +97,7 @@ new-project() {
 # Shows git status for every repo in workspace/code, then pulls on confirmation.
 # Usage: sync-code
 sync-code() {
-  local code_dir
-  [[ "$OSTYPE" == "darwin"* ]] && code_dir="$HOME/Documents/workspace/code" || code_dir="$HOME/workspace/code"
+  local code_dir="$HOME/workspace/code"
   local repos=()
   for d in "$code_dir"/*/; do
     [[ -d "$d/.git" ]] && repos+=("$d")
@@ -137,3 +135,4 @@ sync-code() {
 
 # Machine-local shell customizations (not tracked in dotfiles)
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+export PATH="$HOME/.local/bin:$PATH"
