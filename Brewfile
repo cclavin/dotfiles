@@ -27,6 +27,7 @@ brew "eza"          # Better ls with colours and git status
 brew "tldr"         # Simplified man pages
 
 # ---- Fonts ------------------------------------------------------------------
+cask "ghostty"                        # GPU-accelerated terminal emulator
 cask "font-jetbrains-mono-nerd-font"  # Required for Starship glyphs
 
 # ---- Security ---------------------------------------------------------------
