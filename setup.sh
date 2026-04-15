@@ -34,8 +34,17 @@ link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
 link "$DOTFILES/ghostty/config"        "$HOME/.config/ghostty/config"
 link "$DOTFILES/tmux/.tmux.conf"        "$HOME/.tmux.conf"
 link "$DOTFILES/claude/CLAUDE.md"       "$HOME/.claude/CLAUDE.md"
-link "$DOTFILES/claude/settings.json"   "$HOME/.claude/settings.json"
 link "$DOTFILES/claude/commands"        "$HOME/.claude/commands"
+
+# settings.json — create from template if missing (machine-owned, not symlinked).
+# MCP servers get merged in by mcp/deploy.py after this step.
+if [ ! -f "$HOME/.claude/settings.json" ] && [ ! -L "$HOME/.claude/settings.json" ]; then
+  run mkdir -p "$HOME/.claude"
+  run cp "$DOTFILES/claude/settings.json.example" "$HOME/.claude/settings.json"
+  success "created ~/.claude/settings.json from template"
+else
+  info "~/.claude/settings.json already exists — skipping"
+fi
 
 # settings.local.json — create from example if missing (machine-local, not symlinked)
 if [ ! -f "$HOME/.claude/settings.local.json" ] && [ ! -L "$HOME/.claude/settings.local.json" ]; then
@@ -96,6 +105,11 @@ need "gh"     "brew install gh"
 need "fnm"    "brew install fnm"
 need "gpg"    "brew install gnupg"
 need "pass"   "brew install pass"
+
+# ---- MCP servers ------------------------------------------------------------
+
+section "MCP servers"
+bash "$DOTFILES/scripts/mcp-setup.sh" "$@"
 
 # ---- Summary ----------------------------------------------------------------
 

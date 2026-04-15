@@ -1,0 +1,12 @@
+{
+  "_meta": {
+    "name": "sequential-thinking",
+    "description": "Sequential Thinking MCP — structured multi-step reasoning. Useful for complex planning (market-event-engine architecture, system design, debugging chains). Makes reasoning steps explicit and revisable.",
+    "package": "@modelcontextprotocol/server-sequential-thinking",
+    "transport": "stdio",
+    "docs": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+    "requires_api_key": false
+  },
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+}

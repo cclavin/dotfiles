@@ -1,0 +1,46 @@
+{
+  "_comment": "Antigravity MCP registration. Config lives at ~/.gemini/antigravity/mcp_config.json. Deploy with: python $AI_WORKSPACE_ROOT/scripts/mcp-deploy.py --tool antigravity",
+  "_manage": "Source of truth is servers/*.json. This file lists which servers are registered to Antigravity.",
+  "_status": "pending — ai-workspace-docs not yet in live config",
+  "_note": "Antigravity's live config also has StitchMCP and cloudrun (both disabled, Google-specific). Those are managed via Antigravity UI and are not tracked here.",
+  "mcpServers": {
+    "ai-workspace-docs": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "G:\\ai-workspace\\docs"]
+    },
+    "supabase-local": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://127.0.0.1:54321/mcp", "--header", "apikey: ${SUPABASE_ACCESS_TOKEN}"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "vault-root": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${VAULT_ROOT}"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "stripe": {
+      "_note": "Key is in --header arg. Deploy script expands ${STRIPE_SECRET_KEY} at deploy time.",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.stripe.com",
+        "--header",
+        "Authorization: Bearer ${STRIPE_SECRET_KEY}"
+      ]
+    }
+  }
+}

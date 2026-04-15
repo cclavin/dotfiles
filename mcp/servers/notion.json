@@ -1,0 +1,12 @@
+{
+  "_meta": {
+    "name": "notion",
+    "description": "Official Notion MCP via remote SSE endpoint. Provides read/write access to Notion workspace.",
+    "transport": "http-sse",
+    "endpoint": "https://mcp.notion.com/mcp",
+    "docs": "https://developers.notion.com/docs/mcp",
+    "requires_api_key": false,
+    "auth": "OAuth — handled by Notion in-browser, no key needed in config"
+  },
+  "url": "https://mcp.notion.com/mcp"
+}

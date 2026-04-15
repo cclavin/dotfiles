@@ -1,5 +1,6 @@
 # ---- Secrets — never commit these ------------------------------------------
 *.env
+!mcp/env.example
 *.pem
 *.key
 *_rsa

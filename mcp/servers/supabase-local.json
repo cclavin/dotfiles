@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "name": "supabase-local",
+    "description": "Local Supabase MCP via the built-in HTTP/SSE endpoint at /mcp. Official approach for local instances — uses mcp-remote to bridge stdio to the HTTP endpoint.",
+    "transport": "http-sse",
+    "endpoint": "http://127.0.0.1:54321/mcp",
+    "docs": "https://supabase.com/docs/guides/getting-started/mcp",
+    "requires_api_key": true,
+    "api_key_env_var": "SUPABASE_ACCESS_TOKEN",
+    "api_key_source": "Run `npx supabase status` from project dir — use the 'Secret' key value",
+    "note": "Key goes in --header arg via mcp-remote. Claude Code does not expand env vars in args, so deploy script writes the value at deploy time. File is machine-local and not git-tracked. Key rotates with `supabase stop && supabase start` — run `mcp-deploy --server supabase-local --force` after updating SUPABASE_ACCESS_TOKEN.",
+    "project": "sequence (C:/Users/cclav/Documents/workspace/code/sequence)",
+    "port": 54321
+  },
+  "command": "npx",
+  "args": [
+    "-y",
+    "mcp-remote",
+    "http://127.0.0.1:54321/mcp",
+    "--header",
+    "apikey: ${SUPABASE_ACCESS_TOKEN}"
+  ]
+}

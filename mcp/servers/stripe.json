@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "name": "stripe",
+    "description": "Stripe MCP — query customers, subscriptions, invoices, and payment intents from the Stripe dashboard without leaving your editor. Useful during sequence dev.",
+    "transport": "http-sse",
+    "endpoint": "https://mcp.stripe.com",
+    "docs": "https://stripe.com/docs/agents/mcp",
+    "requires_api_key": true,
+    "api_key_env_var": "STRIPE_SECRET_KEY",
+    "note": "Use your test-mode secret key (sk_test_...) for dev work. Key goes in the --header arg via mcp-remote. Deploy script expands at write time."
+  },
+  "command": "npx",
+  "args": [
+    "-y",
+    "mcp-remote",
+    "https://mcp.stripe.com",
+    "--header",
+    "Authorization: Bearer ${STRIPE_SECRET_KEY}"
+  ]
+}

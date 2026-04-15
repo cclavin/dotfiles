@@ -109,7 +109,7 @@ check_link "$HOME/.gitconfig"
 check_link "$HOME/.editorconfig"
 check_link "$HOME/.prettierrc"
 check_link "$HOME/.claude/CLAUDE.md"
-check_link "$HOME/.claude/settings.json"
+check_file "$HOME/.claude/settings.json" "~/.claude/settings.json"
 
 check_link "$HOME/.tmux.conf"
 check_link "$HOME/.config/starship.toml"
@@ -146,6 +146,29 @@ section "Workspace"
 
 check_dir "$HOME/workspace/code"
 check_dir "$HOME/workspace/vault"
+
+# ---- MCP config -------------------------------------------------------------
+
+section "MCP"
+
+check_file "$DOTFILES/mcp/deploy.py" "mcp/deploy.py"
+
+if [[ -f "$HOME/.claude/settings.json" ]] && command -v python3 &>/dev/null || command -v python &>/dev/null || command -v py &>/dev/null; then
+  # Check that mcpServers key exists and has at least one entry
+  if jq -e '.mcpServers | length > 0' "$HOME/.claude/settings.json" &>/dev/null; then
+    local_count=$(jq '.mcpServers | length' "$HOME/.claude/settings.json" 2>/dev/null)
+    success "claude settings.json has $local_count MCP server(s)"
+  else
+    warn "FAIL ~/.claude/settings.json has no MCP servers -- run: bash scripts/mcp-setup.sh"
+    ((ERRORS++))
+  fi
+fi
+
+if [[ -f "$DOTFILES/mcp/env" ]]; then
+  success "mcp/env secrets file present"
+else
+  info "mcp/env not found -- MCP servers needing keys will deploy with literals"
+fi
 
 # ---- Role-specific checks ---------------------------------------------------
 

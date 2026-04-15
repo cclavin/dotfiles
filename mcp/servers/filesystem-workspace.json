@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "name": "ai-workspace-docs",
+    "description": "Read-only filesystem access to G:/ai-workspace/docs. Lets agents browse workspace documentation without requiring manual file paths.",
+    "package": "@modelcontextprotocol/server-filesystem",
+    "transport": "stdio",
+    "docs": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+    "requires_api_key": false,
+    "scope": "G:\\ai-workspace\\docs"
+  },
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-filesystem", "G:\\ai-workspace\\docs"]
+}

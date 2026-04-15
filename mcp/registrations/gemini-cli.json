@@ -1,0 +1,35 @@
+{
+  "_comment": "Gemini CLI MCP registration. Deployed to ~/.gemini/settings.json.",
+"_status": "deployed",
+  "_docs": "https://github.com/google-gemini/gemini-cli/blob/main/docs/mcp.md",
+  "_removed": "brave-search removed 2026-04-01 — Gemini CLI has native Google Search; Brave redundant",
+  "mcpServers": {
+    "ai-workspace-docs": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "G:\\ai-workspace\\docs"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "supabase-local": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://127.0.0.1:54321/mcp", "--header", "apikey: ${SUPABASE_ACCESS_TOKEN}"]
+    },
+    "vault-root": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${VAULT_ROOT}"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    }
+  }
+}

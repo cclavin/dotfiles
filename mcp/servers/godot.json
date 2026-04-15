@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "name": "godot",
+    "description": "Godot Engine MCP — lets agents interact with the Godot editor (create scenes, add nodes, run projects).",
+    "package": "@coding-solo/godot-mcp",
+    "transport": "stdio",
+    "docs": "https://github.com/coding-solo/godot-mcp",
+    "requires_api_key": false,
+    "env_vars": {
+      "GODOT_PATH": "Absolute path to the Godot executable — set as system env var"
+    },
+    "note": "Uses direct node invocation — set GODOT_MCP_NODE and GODOT_MCP_SCRIPT if using fnm/nvm. Otherwise npx works if package is globally installed."
+  },
+  "command": "npx",
+  "args": ["-y", "@coding-solo/godot-mcp"],
+  "env": {
+    "GODOT_PATH": "${GODOT_PATH}"
+  }
+}

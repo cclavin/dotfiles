@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "name": "context7",
+    "description": "Context7 — injects up-to-date library documentation into agent context. Critical for fast-moving libraries (Next.js 15, shadcn, Supabase JS, Stripe). Eliminates hallucinated/outdated API patterns.",
+    "package": "@upstash/context7-mcp",
+    "transport": "stdio",
+    "docs": "https://github.com/upstash/context7",
+    "requires_api_key": false,
+    "note": "No API key required. Usage: mention 'use context7' or include 'C7' in your prompt to pull current docs for the library you're referencing."
+  },
+  "command": "npx",
+  "args": ["-y", "@upstash/context7-mcp"]
+}

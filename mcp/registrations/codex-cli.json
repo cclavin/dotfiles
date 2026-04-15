@@ -1,0 +1,27 @@
+{
+  "_comment": "Codex CLI MCP registration. Format is TOML in ~/.codex/config.toml. Deploy with: python $AI_WORKSPACE_ROOT/scripts/mcp-deploy.py --tool codex-cli",
+  "_manage": "Source of truth is servers/*.json. This file lists which servers are registered to Codex CLI.",
+  "_status": "partial — ai-workspace-docs missing from live config despite being listed here",
+  "_docs": "https://github.com/openai/codex/blob/main/codex-cli/docs/mcp.md",
+  "_removed": "brave-search removed 2026-04-01 — Codex CLI has native OpenAI search; Brave redundant",
+  "mcpServers": {
+    "ai-workspace-docs": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "G:\\ai-workspace\\docs"]
+    },
+    "notion": {
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}

@@ -172,7 +172,16 @@ link "$DOTFILES/git/.gitconfig"         "$HOME/.gitconfig"
 link "$DOTFILES/.editorconfig"          "$HOME/.editorconfig"
 link "$DOTFILES/.prettierrc"            "$HOME/.prettierrc"
 link "$DOTFILES/claude/CLAUDE.md"       "$HOME/.claude/CLAUDE.md"
-link "$DOTFILES/claude/settings.json"   "$HOME/.claude/settings.json"
+
+# settings.json — create from template if missing (machine-owned, not symlinked).
+# MCP servers get merged in by mcp/deploy.py after this step.
+if [ ! -f "$HOME/.claude/settings.json" ] && [ ! -L "$HOME/.claude/settings.json" ]; then
+  run mkdir -p "$HOME/.claude"
+  run cp "$DOTFILES/claude/settings.json.example" "$HOME/.claude/settings.json"
+  success "created ~/.claude/settings.json from template"
+else
+  info "~/.claude/settings.json already exists -- skipping"
+fi
 
 # Agent Rules Polyfills (points IDEs to the repository source of truth)
 link "$DOTFILES/AGENTS.md"              "$DOTFILES/.cursorrules"
@@ -230,6 +239,11 @@ EOF
 else
   info "~/.gitconfig.local already exists — skipping"
 fi
+
+# ---- MCP servers ------------------------------------------------------------
+
+section "MCP servers"
+bash "$DOTFILES/scripts/mcp-setup.sh"
 
 # ---- Summary ----------------------------------------------------------------
 

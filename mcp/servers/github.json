@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "name": "github",
+    "description": "GitHub MCP — search repos, manage issues/PRs, read file contents across all your repos without switching context.",
+    "package": "@modelcontextprotocol/server-github",
+    "transport": "stdio",
+    "docs": "https://github.com/modelcontextprotocol/servers/tree/main/src/github",
+    "requires_api_key": true,
+    "api_key_env_var": "GITHUB_PERSONAL_ACCESS_TOKEN",
+    "token_scopes": "repo, read:org — create at https://github.com/settings/tokens",
+    "note": "Fine-grained or classic PAT both work. Minimum scope: repo (read/write) + read:org."
+  },
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-github"],
+  "env": {
+    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "name": "exa",
+    "description": "Exa search MCP — semantic/neural search, significantly better than keyword search for technical queries, academic papers, and trading research. Free tier: 1000 searches/month. Replaces or supplements brave-search.",
+    "package": "@exa-ai/mcp-server",
+    "transport": "stdio",
+    "docs": "https://docs.exa.ai/reference/mcp",
+    "requires_api_key": true,
+    "api_key_env_var": "EXA_API_KEY",
+    "token_source": "https://dashboard.exa.ai/api-keys",
+    "free_tier": "1000 searches/month"
+  },
+  "command": "npx",
+  "args": ["-y", "@exa-ai/mcp-server"],
+  "env": {
+    "EXA_API_KEY": "${EXA_API_KEY}"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "name": "brave-search",
+    "description": "Web search via Brave Search API. General purpose search, research, content discovery.",
+    "package": "@modelcontextprotocol/server-brave-search",
+    "transport": "stdio",
+    "docs": "https://github.com/modelcontextprotocol/servers/tree/main/src/brave-search",
+    "api_key_source": "https://brave.com/search/api/",
+    "free_tier": "2000 requests/month",
+    "requires_api_key": true,
+    "api_key_env_var": "BRAVE_API_KEY"
+  },
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+  "env": {
+    "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+  }
+}

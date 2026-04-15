@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "name": "vault-root",
+    "description": "Read-only filesystem access to the Obsidian vault. Lets agents browse SOPs, runbooks, project registry, and market-event-engine notes without manual path-pasting.",
+    "package": "@modelcontextprotocol/server-filesystem",
+    "transport": "stdio",
+    "docs": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+    "requires_api_key": false,
+    "scope": "${VAULT_ROOT}"
+  },
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-filesystem", "${VAULT_ROOT}"]
+}

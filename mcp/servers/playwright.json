@@ -1,0 +1,12 @@
+{
+  "_meta": {
+    "name": "playwright",
+    "description": "Playwright MCP — browser automation and web scraping via Playwright.",
+    "package": "@playwright/mcp",
+    "transport": "stdio",
+    "docs": "https://github.com/microsoft/playwright-mcp",
+    "requires_api_key": false
+  },
+  "command": "npx",
+  "args": ["@playwright/mcp@latest"]
+}
