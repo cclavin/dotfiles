@@ -24,6 +24,11 @@ else
   info "Native Linux environment detected"
 fi
 
+# Ensure tools installed to ~/.local/bin are findable within this session.
+# .zshrc sets this for interactive shells; we need it here for command -v
+# checks that run immediately after installing mise, uv, zoxide, etc.
+export PATH="$HOME/.local/bin:$PATH"
+
 section "Workspace"
 bash "$DOTFILES/scripts/workspace-init.sh"
 
@@ -36,7 +41,7 @@ if ! command -v sudo &>/dev/null; then
 fi
 
 if is_dry_run; then
-  info "[dry-run] would install via apt: git curl unzip gnupg pass jq ripgrep fzf xz-utils tmux zsh-autosuggestions zsh-syntax-highlighting eza bat"
+  info "[dry-run] would install via apt: git curl unzip gnupg pass jq ripgrep fzf xz-utils tmux zsh-autosuggestions zsh-syntax-highlighting bat"
 else
   sudo apt-get update -qq
   sudo apt-get install -y -qq \
@@ -52,7 +57,6 @@ else
     tmux \
     zsh-autosuggestions \
     zsh-syntax-highlighting \
-    eza \
     bat
   success "Core packages installed"
 fi
@@ -72,6 +76,28 @@ else
   sudo install /tmp/lazygit /usr/local/bin/lazygit
   rm -f /tmp/lazygit.tar.gz /tmp/lazygit
   success "lazygit installed"
+fi
+
+# ---- eza (better ls) --------------------------------------------------------
+# eza is in Ubuntu 24.04+ apt repos; install from GitHub releases on 22.04.
+
+section "Installing eza"
+
+if command -v eza &>/dev/null; then
+  success "eza already installed: $(eza --version | head -1)"
+elif is_dry_run; then
+  info "[dry-run] would install eza (apt on Ubuntu 24.04+, GitHub release otherwise)"
+elif apt-cache show eza &>/dev/null 2>&1; then
+  sudo apt-get install -y -qq eza
+  success "eza installed via apt"
+else
+  EZA_VERSION=$(curl -s "https://api.github.com/repos/eza-community/eza/releases/latest" \
+    | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+  wget -qO /tmp/eza.deb \
+    "https://github.com/eza-community/eza/releases/download/v${EZA_VERSION}/eza_${EZA_VERSION}_amd64.deb"
+  sudo dpkg -i /tmp/eza.deb
+  rm -f /tmp/eza.deb
+  success "eza installed from GitHub release (v${EZA_VERSION})"
 fi
 
 # ---- delta (better git diff) ------------------------------------------------

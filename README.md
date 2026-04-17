@@ -113,33 +113,88 @@ bash ~/dotfiles/scripts/mcp-setup.sh
 
 ## Setup — WSL2 (Windows)
 
-WSL2 + Debian/Ubuntu is the recommended Windows environment. It runs the
-same Linux toolchain as the Debian setup with no rewrites.
+WSL2 + Ubuntu is the recommended Windows dev environment. It runs the same
+Linux toolchain as the native Linux setup with no rewrites.
 
-```powershell
-# In PowerShell (admin) — enable WSL2 and install Debian
-wsl --install -d Debian
-# Restart when prompted, then open the Debian terminal
-```
+### Prerequisites (Windows side, before opening WSL)
+
+1. **Install Git for Windows** — provides the Git Credential Manager that WSL
+   uses for `gh auth` and GitHub pushes. Without it, you'll need to set up GPG
+   and `pass` manually inside WSL.
+2. **Enable WSL2** (PowerShell as admin):
+   ```powershell
+   wsl --install          # installs Ubuntu by default; restart when prompted
+   ```
+
+### Bootstrap (inside WSL Ubuntu terminal)
 
 ```bash
-# Inside WSL2 Debian terminal:
+# 1. Install git and curl if not present (minimal Ubuntu images may omit them)
+sudo apt-get update && sudo apt-get install -y git curl
+
+# 2. If you have an Obsidian vault on Windows, export its path now so bootstrap
+#    creates a symlink instead of an empty directory. Replace with your actual path.
+export WINDOWS_VAULT_PATH="/mnt/c/Users/<YourName>/Documents/workspace/vault"
+# Also persist it for future shells:
+echo "export WINDOWS_VAULT_PATH=\"$WINDOWS_VAULT_PATH\"" >> ~/.zshrc.local
+
+# 3. Clone dotfiles
 git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
+
+# 4. Run bootstrap
+#    --role wsl-dev  → installs core tools + cloud stack (Go, GCP, Terraform; skips Docker)
+#    --no-cloud      → prevents the interactive cloud prompt, which wsl-dev already handles
 cd ~/dotfiles
-bash bootstrap.sh
+bash bootstrap.sh --role wsl-dev --no-cloud
 ```
 
-The setup script detects WSL2 and configures the git credential helper to use
-**Windows Git Credential Manager** (installed alongside Git for Windows) so you
-authenticate once and it works in both Windows and WSL. If Git for Windows is
-not installed, it falls back to `pass`.
+> **Note:** bootstrap ends with a validation run. mise and uv will show as
+> failing because `~/.local/bin` is not on `PATH` in the bootstrap bash session.
+> This is expected — re-run `--audit` after reloading your shell (step 5).
 
-**After bootstrap — install runtimes and Claude Code:**
 ```bash
-source ~/.zshrc        # activate mise shims
-mise install           # install Node LTS + Python 3.12 from mise/config.toml
+# 5. Reload shell (activates mise, sets full PATH)
+exec zsh
+
+# 6. Install runtimes
+mise install
+
+# 7. Authenticate GitHub CLI
+gh auth login
+
+# 8. Install Claude Code
 npm install -g @anthropic-ai/claude-code
+
+# 9. Set up MCP servers
+cp ~/dotfiles/mcp/env.example ~/dotfiles/mcp/env
+$EDITOR ~/dotfiles/mcp/env   # fill in API keys
+bash ~/dotfiles/scripts/mcp-setup.sh
+
+# 10. Confirm everything is clean
+bash ~/dotfiles/bootstrap.sh --audit
 ```
+
+### Credential management
+
+The bootstrap auto-detects Git for Windows at
+`/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe`. If found,
+`~/.gitconfig.local` is written to use it — you authenticate once and it works
+in both Windows and WSL.
+
+If Git for Windows is not installed, the credential helper section in
+`~/.gitconfig.local` is commented out with instructions. You can either install
+Git for Windows and re-run bootstrap, or set up GPG + `pass` inside WSL.
+
+### Partially initialized machine
+
+If you've previously set up tools manually in WSL:
+
+- **Existing `~/.zshrc`** — the `link()` helper backs it up to `~/.zshrc.bak`
+  and replaces it with the tracked version. Move any custom config from
+  `~/.zshrc.bak` into `~/.zshrc.local` (auto-sourced at the end of `.zshrc`).
+- **Existing Node (nvm/fnm)** — mise takes over as the runtime manager. Run
+  `mise use node@<version>` in any project that needs a specific version.
+- **Re-running bootstrap** is always safe — all scripts are idempotent.
 
 ---
 

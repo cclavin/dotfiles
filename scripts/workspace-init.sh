@@ -27,8 +27,26 @@ section "Workspace directories"
 run mkdir -p "$CODE_DIR"
 success "code/   →  $CODE_DIR"
 
-run mkdir -p "$VAULT_DIR"
-success "vault/  →  $VAULT_DIR"
+# On WSL: if WINDOWS_VAULT_PATH is set, symlink vault to the Windows filesystem
+# so Obsidian (Windows) and the terminal (WSL) share the same files.
+# Set WINDOWS_VAULT_PATH in ~/.zshrc.local before running bootstrap.
+if $IS_WSL && [[ -n "${WINDOWS_VAULT_PATH:-}" ]]; then
+  if [[ -L "$VAULT_DIR" ]]; then
+    success "vault/  →  $VAULT_DIR (symlink already exists)"
+  elif is_dry_run; then
+    info "[dry-run] would symlink $VAULT_DIR → $WINDOWS_VAULT_PATH"
+  else
+    # Remove empty dir created by a previous bootstrap run, if present
+    if [[ -d "$VAULT_DIR" && -z "$(ls -A "$VAULT_DIR" 2>/dev/null)" ]]; then
+      rmdir "$VAULT_DIR"
+    fi
+    ln -sf "$WINDOWS_VAULT_PATH" "$VAULT_DIR"
+    success "vault/  →  $VAULT_DIR → $WINDOWS_VAULT_PATH (WSL symlink)"
+  fi
+else
+  run mkdir -p "$VAULT_DIR"
+  success "vault/  →  $VAULT_DIR"
+fi
 
 # ---- Vault migration (new machine only) -------------------------------------
 
@@ -64,13 +82,17 @@ fi
 
 if ! is_dry_run; then
   if git -C "$VAULT_DIR" rev-parse --git-dir &>/dev/null 2>&1; then
-    info "Vault is a git repo — pulling latest..."
-    git -C "$VAULT_DIR" pull --ff-only \
-      && success "vault updated" \
-      || warn "vault pull failed — check manually"
+    if git -C "$VAULT_DIR" remote get-url origin &>/dev/null 2>&1; then
+      info "Vault is a git repo — pulling latest..."
+      git -C "$VAULT_DIR" pull --ff-only \
+        && success "vault updated" \
+        || warn "vault pull failed — check manually"
+    else
+      info "Vault is a local-only git repo — skipping pull"
+    fi
   else
     info "Vault git sync not enabled"
-    info "To enable: cd \"$VAULT_DIR\" && git init && gh repo create vault --private --source=. --remote=origin --push"
+    info "To enable: cd \"$VAULT_DIR\" && git init (local-only) or add a remote for sync"
   fi
 fi
 
