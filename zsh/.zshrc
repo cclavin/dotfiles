@@ -1,9 +1,15 @@
 export PATH="$HOME/.local/bin:$PATH"
 
-# fnm — fast Node version manager (installed via Homebrew on macOS, curl on Linux)
-if command -v fnm &>/dev/null; then
+# mise — polyglot runtime manager (Node, Python, Go, etc.)
+# Falls back to fnm on machines not yet migrated to mise.
+if command -v mise &>/dev/null; then
+  eval "$(mise activate zsh)"
+elif command -v fnm &>/dev/null; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
+
+# Go — PATH for /usr/local/go installs (cloud/go.sh); no-op when Go is absent
+[[ -d /usr/local/go/bin ]] && export PATH="$PATH:/usr/local/go/bin"
 
 # Starship prompt
 if command -v starship &>/dev/null; then
@@ -148,4 +154,3 @@ sync-code() {
 
 # Machine-local shell customizations (not tracked in dotfiles)
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
-export PATH="$HOME/.local/bin:$PATH"

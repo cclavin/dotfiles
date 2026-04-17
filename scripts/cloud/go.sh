@@ -35,14 +35,8 @@ sudo rm -rf /usr/local/go
 sudo tar -C /usr/local -xzf "/tmp/${GO_TAR}"
 rm -f "/tmp/${GO_TAR}"
 
-# Ensure /usr/local/go/bin is on PATH in ~/.zshrc
-if ! grep -q "/usr/local/go/bin" "$HOME/.zshrc"; then
-  info "Appending /usr/local/go/bin to ~/.zshrc..."
-  echo '' >> "$HOME/.zshrc"
-  echo '# Added by dotfiles cloud/go.sh setup' >> "$HOME/.zshrc"
-  echo 'export PATH=$PATH:/usr/local/go/bin' >> "$HOME/.zshrc"
-fi
-
+# PATH is managed in the tracked zsh/.zshrc ([[ -d /usr/local/go/bin ]] guard).
+# Export here so the remainder of this script can invoke go without a shell reload.
 export PATH=$PATH:/usr/local/go/bin
 
 success "Go installed: $(go version)"

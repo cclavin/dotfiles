@@ -135,12 +135,43 @@ else
   success "gh CLI installed"
 fi
 
-# ---- fnm (Node version manager) ---------------------------------------------
+# ---- mise (polyglot runtime manager — replaces fnm) -------------------------
+
+section "Installing mise"
+
+if command -v mise &>/dev/null; then
+  success "mise already installed: $(mise --version)"
+elif is_dry_run; then
+  info "[dry-run] would install mise via mise.run"
+else
+  curl https://mise.run | sh
+  success "mise installed to ~/.local/bin/mise"
+  info "mise will be activated on next shell reload (via .zshrc)"
+fi
+
+# ---- uv (Python package/project/tool manager) -------------------------------
+
+section "Installing uv"
+
+if command -v uv &>/dev/null; then
+  success "uv already installed: $(uv --version)"
+elif is_dry_run; then
+  info "[dry-run] would install uv via astral.sh/uv"
+else
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  success "uv installed to ~/.local/bin/uv"
+fi
+
+# ---- fnm (Node version manager — legacy fallback) ---------------------------
+# Kept for machines not yet migrated to mise. The .zshrc activates fnm only
+# when mise is absent. Remove after all machines confirm mise is working.
 
 section "Installing fnm"
 
 if command -v fnm &>/dev/null; then
   success "fnm already installed: $(fnm --version)"
+elif command -v mise &>/dev/null; then
+  info "mise is present — skipping fnm install"
 elif is_dry_run; then
   info "[dry-run] would install fnm to ~/.local/bin"
 else
@@ -168,6 +199,7 @@ link "$DOTFILES/zsh/.zshrc"             "$HOME/.zshrc"
 link "$DOTFILES/tmux/.tmux.conf"        "$HOME/.tmux.conf"
 link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
 link "$DOTFILES/ghostty/config"        "$HOME/.config/ghostty/config"
+link "$DOTFILES/mise/config.toml"      "$HOME/.config/mise/config.toml"
 link "$DOTFILES/git/.gitconfig"         "$HOME/.gitconfig"
 link "$DOTFILES/.editorconfig"          "$HOME/.editorconfig"
 link "$DOTFILES/.prettierrc"            "$HOME/.prettierrc"
@@ -251,4 +283,7 @@ section "Core Setup Done"
 echo ""
 echo "  Reload your shell:"
 echo "    source ~/.zshrc   # or: exec zsh"
+echo ""
+echo "  Then install runtimes (Node LTS + Python 3.12):"
+echo "    mise install"
 echo ""

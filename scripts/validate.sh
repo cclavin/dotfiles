@@ -83,8 +83,17 @@ check_cmd "fzf"
 check_cmd "ripgrep" "rg"
 check_cmd "starship"
 check_cmd "zoxide"
-check_cmd "fnm"
+check_cmd "mise"
+check_cmd "uv"
 check_cmd "delta"
+
+# fnm: soft warning — only needed on machines not yet migrated to mise
+if ! command -v mise &>/dev/null && ! command -v fnm &>/dev/null; then
+  warn "WARN neither mise nor fnm found — no Node version manager present"
+  ERRORS=$((ERRORS + 1))
+elif command -v fnm &>/dev/null && ! command -v mise &>/dev/null; then
+  warn "WARN fnm found but mise not installed — run bootstrap to migrate"
+fi
 
 # bat is batcat on Debian/Ubuntu
 if command -v bat &>/dev/null || command -v batcat &>/dev/null; then
@@ -113,6 +122,7 @@ check_file "$HOME/.claude/settings.json" "~/.claude/settings.json"
 
 check_link "$HOME/.tmux.conf"
 check_link "$HOME/.config/starship.toml"
+check_link "$HOME/.config/mise/config.toml"
 
 # ---- Config validity --------------------------------------------------------
 
@@ -153,11 +163,13 @@ section "MCP"
 
 check_file "$DOTFILES/mcp/deploy.py" "mcp/deploy.py"
 
-if [[ -f "$HOME/.claude/settings.json" ]] && command -v python3 &>/dev/null || command -v python &>/dev/null || command -v py &>/dev/null; then
-  # Check that mcpServers key exists and has at least one entry
+_has_python() {
+  command -v uv &>/dev/null || command -v python3 &>/dev/null || command -v python &>/dev/null
+}
+if [[ -f "$HOME/.claude/settings.json" ]] && _has_python; then
   if jq -e '.mcpServers | length > 0' "$HOME/.claude/settings.json" &>/dev/null; then
-    local_count=$(jq '.mcpServers | length' "$HOME/.claude/settings.json" 2>/dev/null)
-    success "claude settings.json has $local_count MCP server(s)"
+    mcp_count=$(jq '.mcpServers | length' "$HOME/.claude/settings.json" 2>/dev/null)
+    success "claude settings.json has $mcp_count MCP server(s)"
   else
     warn "FAIL ~/.claude/settings.json has no MCP servers -- run: bash scripts/mcp-setup.sh"
     ((ERRORS++))

@@ -16,6 +16,10 @@ _DOTFILES_VERSIONS_LOADED=1
 DELTA_VERSION="0.18.2"
 GO_VERSION="1.26.1"
 
+# Runtime versions managed by mise (see mise/config.toml for authoritative values)
+NODE_VERSION="lts"      # LTS release; mise/config.toml is the active config
+PYTHON_VERSION="3.12"   # global default; per-project .python-version overrides
+
 # Future additions:
 # LAZYGIT_VERSION=""    # currently fetched from GitHub API (latest)
 # TERRAFORM_VERSION=""  # currently installed via apt (latest)

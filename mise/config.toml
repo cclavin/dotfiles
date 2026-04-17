@@ -1,0 +1,18 @@
+# mise/config.toml — Global runtime version config.
+# Symlinked to ~/.config/mise/config.toml by setup.sh and scripts/linux-core.sh.
+#
+# Versions here are the machine-wide defaults. Per-project .mise.toml or
+# .tool-versions files take precedence inside those directories.
+#
+# After bootstrap, run once to install the declared versions:
+#   mise install
+#
+# To see what's installed:
+#   mise ls
+#
+# To add a per-project override (don't edit this file):
+#   cd ~/workspace/code/myproject && mise use node@20
+
+[tools]
+node   = "lts"    # LTS release — currently 22.x
+python = "3.12"   # global default; per-project .python-version overrides this

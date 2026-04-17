@@ -22,5 +22,6 @@
       "Bash(curl * | bash)",
       "Bash(wget * | sh)"
     ]
-  }
+  },
+  "model": "opusplan"
 }

@@ -11,8 +11,9 @@
       }
     },
     "ai-workspace-docs": {
+      "_note": "Windows-only by default. Set AI_WORKSPACE_ROOT in mcp/env (e.g. G:/ai-workspace/docs). Leave unset on macOS/WSL — server registers but is inert without the path.",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "G:\\ai-workspace\\docs"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${AI_WORKSPACE_ROOT}"]
     },
     "godot": {
       "_note": "Live config uses hardcoded fnm node path — canonical uses npx. Update live config manually if npx works.",

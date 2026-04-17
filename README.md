@@ -16,11 +16,14 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `.editorconfig` | `~/.editorconfig` | Universal editor whitespace/encoding rules |
 | `.prettierrc` | `~/.prettierrc` | Default Prettier formatting |
 | `starship/starship.toml` | `~/.config/starship.toml` | Starship prompt config |
+| `mise/config.toml` | `~/.config/mise/config.toml` | Global runtime versions (Node LTS, Python 3.12) |
 | `tmux/.tmux.conf` | `~/.tmux.conf` | Tmux config (Catppuccin theme, vi keys) |
 | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global AI Agent instructions |
-| `claude/settings.json` | `~/.claude/settings.json` | Claude Code permissions |
+| `claude/settings.json.example` | (template only) | Claude Code base config — copied to `~/.claude/settings.json` on first run |
 | `claude/settings.local.json.example` | (template only) | Machine-local Claude permission overrides |
 | `claude/commands/` | `~/.claude/commands/` | Custom slash commands (`/pickup`, `/signoff`) |
+| `mcp/servers/*.json` | (source of truth) | Canonical MCP server definitions |
+| `mcp/registrations/*.json` | (source of truth) | Per-tool MCP server lists |
 | `Brewfile` | (not symlinked) | macOS tool list for `brew bundle` |
 | `AGENTS.md` | (repo polyfills) | Repository-specific AI Agent instructions |
 
@@ -29,7 +32,10 @@ This repository handles automated bootstrapping of my core terminal environment 
 |------|---------|
 | `~/.gitconfig.local` | Credential helper, GPG key, work email overrides |
 | `~/.zshrc.local` | Machine-specific shell additions (auto-sourced by `.zshrc`) |
+| `~/.claude/settings.json` | Claude Code config (MCP servers merged in by `mcp/deploy.py`) |
 | `~/.claude/settings.local.json` | Machine-local Claude permission overrides |
+| `mcp/env` | MCP server secrets — copy from `mcp/env.example` and fill in |
+| `mcp/local/registrations/*.json` | Private/machine-specific MCP servers (never committed) |
 | `~/.local/share/dotfiles/state.env` | Installed version, role, migration history |
 
 ---
@@ -46,18 +52,29 @@ git clone https://github.com/cclavin/dotfiles.git ~/dotfiles
 # 3. Run setup (use bash explicitly — never sudo)
 bash ~/dotfiles/bootstrap.sh --no-cloud
 
-# 4. Reload shell
+# 4. Install all Homebrew tools
+cd ~/dotfiles && brew bundle
+
+# 5. Reload shell
 source ~/.zshrc
 
-# 5. Authenticate GitHub CLI
+# 6. Install runtimes (Node LTS + Python 3.12)
+mise install
+
+# 7. Authenticate GitHub CLI
 gh auth login
 
-# 6. Store API keys in macOS Keychain
+# 8. Store API keys in macOS Keychain
 security add-generic-password -a "$USER" -s ANTHROPIC_API_KEY -w
 # Paste the key value when prompted — it will not echo
 
-# 7. Set terminal font to JetBrainsMono Nerd Font (for Starship glyphs)
-#    Terminal > Preferences > Profiles > Font
+# 9. Set up MCP servers (copy env file and fill in API keys first)
+cp ~/dotfiles/mcp/env.example ~/dotfiles/mcp/env
+$EDITOR ~/dotfiles/mcp/env   # fill in keys
+bash ~/dotfiles/scripts/mcp-setup.sh
+
+# 10. Set terminal font to JetBrainsMono Nerd Font (for Starship glyphs)
+#     Terminal > Preferences > Profiles > Font
 ```
 
 ---
@@ -75,13 +92,21 @@ bash bootstrap.sh
 # 3. Reload shell
 source ~/.zshrc   # or: exec zsh
 
-# 4. Authenticate GitHub CLI
+# 4. Install runtimes (Node LTS + Python 3.12)
+mise install
+
+# 5. Authenticate GitHub CLI
 gh auth login
 
-# 5. Store API keys with pass (GPG-encrypted)
+# 6. Store API keys with pass (GPG-encrypted)
 gpg --full-generate-key       # create a key if you don't have one
 pass init <your-gpg-key-id>   # initialise the password store
 pass insert api-keys/ANTHROPIC_API_KEY
+
+# 7. Set up MCP servers
+cp ~/dotfiles/mcp/env.example ~/dotfiles/mcp/env
+$EDITOR ~/dotfiles/mcp/env
+bash ~/dotfiles/scripts/mcp-setup.sh
 ```
 
 ---
@@ -109,9 +134,10 @@ The setup script detects WSL2 and configures the git credential helper to use
 authenticate once and it works in both Windows and WSL. If Git for Windows is
 not installed, it falls back to `pass`.
 
-**Install Node + Claude Code in WSL2:**
+**After bootstrap — install runtimes and Claude Code:**
 ```bash
-fnm install 20 && fnm use 20
+source ~/.zshrc        # activate mise shims
+mise install           # install Node LTS + Python 3.12 from mise/config.toml
 npm install -g @anthropic-ai/claude-code
 ```
 
@@ -170,6 +196,7 @@ Role state is saved to `~/.local/share/dotfiles/state.env` and used by `--audit`
 cd ~/dotfiles
 git pull
 bash bootstrap.sh --no-cloud   # or --cloud if you want cloud tools too
+mise install                    # pick up any runtime version changes
 bash bootstrap.sh --audit
 ```
 
@@ -202,14 +229,15 @@ Validates:
 ## Architecture
 
 ```
-bootstrap.sh          ← entrypoint: flags, migrate, OS route, role, validate
-  scripts/lib.sh      ← shared helpers (info, link, run, is_dry_run, detect_os)
-  scripts/versions.sh ← pinned tool versions (single source of truth)
-  scripts/state.sh    ← local state (~/.local/share/dotfiles/state.env)
-  scripts/migrate.sh  ← apply pending numbered migrations
-  scripts/validate.sh ← audit system state
-  scripts/style.sh    ← optional styling (--style enhanced installs Nerd Fonts)
-  setup.sh            ← macOS platform setup
+bootstrap.sh               ← entrypoint: flags, migrate, OS route, role, validate
+  scripts/lib.sh           ← shared helpers (info, link, run, is_dry_run, detect_os)
+  scripts/versions.sh      ← pinned tool versions (single source of truth)
+  scripts/state.sh         ← local state (~/.local/share/dotfiles/state.env)
+  scripts/migrate.sh       ← apply pending numbered migrations
+  scripts/validate.sh      ← audit system state
+  scripts/style.sh         ← optional styling (--style enhanced installs Nerd Fonts)
+  scripts/mcp-setup.sh     ← source mcp/env secrets and run mcp/deploy.py
+  setup.sh                 ← macOS platform setup
   scripts/linux-core.sh    ← Linux/WSL core tools + symlinks
   scripts/linux-cloud.sh   ← cloud toolchain dispatcher
     scripts/cloud/go.sh
@@ -220,8 +248,14 @@ bootstrap.sh          ← entrypoint: flags, migrate, OS route, role, validate
   roles/linux-dev.sh
   roles/macos-workstation.sh
   roles/cloud-admin.sh
+  mise/config.toml          ← global runtime versions (Node, Python)
+  mcp/deploy.py             ← merge MCP server configs into each tool's live config
+  mcp/servers/*.json        ← canonical server definitions
+  mcp/registrations/*.json  ← per-tool server lists (claude-code, gemini-cli, etc.)
+  mcp/local/                ← machine-local private servers (gitignored)
   migrations/001-init-state.sh
   migrations/002-zshrc-local-support.sh
+  migrations/003-mise-activation.sh
 ```
 
 ---
@@ -318,7 +352,103 @@ cw   # cd ~/workspace/code
 
 ### Obsidian vault
 
-`~/workspace/vault` is created by bootstrap but not managed here. Recommended sync approach is **Syncthing** (free, P2P, no cloud relay) — install separately per machine and point it at `~/workspace/vault`. Not included in dotfiles as it requires per-machine peer configuration.
+`~/workspace/vault` is created by bootstrap. On WSL2, point it at the Windows vault via a symlink so both Obsidian (Windows) and the terminal (WSL) share the same files with no sync layer:
+
+```bash
+# In WSL — replace with your actual vault path in Windows
+ln -sf "/mnt/c/Users/<user>/Documents/workspace/vault" ~/workspace/vault
+```
+
+Add `WINDOWS_VAULT_PATH` to `~/.zshrc.local` so the path is documented per-machine:
+```bash
+export WINDOWS_VAULT_PATH="/mnt/c/Users/<user>/Documents/workspace/vault"
+```
+
+The vault git repo (if present) is local-only — no remote is configured by design.
+
+---
+
+## Runtime management (mise)
+
+`mise` is the polyglot runtime manager. It replaces `fnm` for Node and adds Python version management. The global config lives at `mise/config.toml` (symlinked to `~/.config/mise/config.toml`).
+
+```bash
+mise install          # install all runtimes declared in mise/config.toml
+mise ls               # list installed versions
+mise use node@22      # pin a specific version in the current project
+```
+
+Per-project overrides: add a `.mise.toml` or `.tool-versions` file at the project root. mise respects these automatically when you `cd` into the directory.
+
+`fnm` remains installed as a fallback on machines not yet migrated. The `.zshrc` activates mise if present, fnm otherwise. Once all machines are on mise, fnm will be removed.
+
+---
+
+## Python projects (uv)
+
+`uv` manages Python packages, virtual environments, and ephemeral CLI tools.
+
+```bash
+# Start a new Python project
+uv init myproject
+cd myproject
+uv add requests        # add a dependency
+uv sync                # install from lockfile
+
+# Run a Python script with inline dependencies (no venv needed)
+uv run script.py
+
+# Run a Python CLI tool without installing it permanently
+uvx ruff check .
+uvx mypy src/
+```
+
+For projects that need a specific Python version, add a `.python-version` file:
+```bash
+echo "3.11" > .python-version
+uv sync    # uv installs 3.11 automatically if needed
+```
+
+---
+
+## MCP servers
+
+MCP server definitions are tracked in `mcp/servers/*.json`. Per-tool registrations (which servers go to which AI tool) live in `mcp/registrations/*.json`. The deploy script merges them into each tool's live config.
+
+### First-time setup
+
+```bash
+# Copy the secrets template and fill in API keys
+cp ~/dotfiles/mcp/env.example ~/dotfiles/mcp/env
+$EDITOR ~/dotfiles/mcp/env
+
+# Deploy to all tools
+bash ~/dotfiles/scripts/mcp-setup.sh
+
+# Preview without writing
+bash ~/dotfiles/scripts/mcp-setup.sh --dry-run
+
+# Deploy to a single tool only
+bash ~/dotfiles/scripts/mcp-setup.sh --tool claude-code
+```
+
+### Private / machine-local servers
+
+Servers you don't want committed (internal tools, personal integrations) go in `mcp/local/registrations/<tool>.json`. This directory is gitignored. The deploy script merges local servers with tracked ones automatically.
+
+```bash
+mkdir -p ~/dotfiles/mcp/local/registrations
+# Create mcp/local/registrations/claude-code.json with your private servers
+# Same format as mcp/registrations/claude-code.json
+bash ~/dotfiles/scripts/mcp-setup.sh
+```
+
+### Rotating a key
+
+```bash
+# Update mcp/env with the new key, then:
+bash ~/dotfiles/scripts/mcp-setup.sh --force --server stripe
+```
 
 ---
 

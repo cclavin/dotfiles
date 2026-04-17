@@ -30,6 +30,11 @@ desktop.ini
 .github/copilot-instructions.md
 /CLAUDE.md
 
+# ---- MCP — machine-local private servers (never commit) --------------------
+# Place private/machine-specific MCP registrations in mcp/local/registrations/<tool>.json
+# deploy.py merges these with tracked registrations at deploy time.
+mcp/local/
+
 # ---- Claude Code — machine-local (never commit) ----------------------------
 claude/settings.local.json
 

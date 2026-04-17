@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#   "tomli; python_version < '3.11'",
+# ]
+# ///
 """
 MCP Deploy Script
 =================
@@ -30,9 +36,9 @@ try:
     import tomllib
 except ImportError:
     try:
-        import tomli as tomllib  # pip install tomli  (Python < 3.11)
+        import tomli as tomllib  # provided by uv run on Python < 3.11 (PEP 723)
     except ImportError:
-        tomllib = None
+        tomllib = None  # TOML unavailable — codex-cli deploy will fail gracefully
 
 # -- Paths --------------------------------------------------------------------
 
@@ -287,6 +293,15 @@ def main():
             continue
 
         servers = load_registration(reg_path)
+
+        # Merge local overlay if present (mcp/local/ is gitignored — use for
+        # machine-specific or private servers not tracked in the repo).
+        local_reg_path = MCP_ROOT / "local" / "registrations" / f"{tool_name}.json"
+        if local_reg_path.exists():
+            local_servers = load_registration(str(local_reg_path))
+            if local_servers:
+                print(f"  Local overlay: +{len(local_servers)} private server(s) from mcp/local/")
+                servers = {**servers, **local_servers}
 
         if args.server:
             if args.server not in servers:
