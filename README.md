@@ -507,6 +507,16 @@ Per-project overrides: add a `.mise.toml` or `.tool-versions` file at the projec
 
 `fnm` remains installed as a fallback on machines not yet migrated. The `.zshrc` activates mise if present, fnm otherwise. Once all machines are on mise, fnm will be removed.
 
+**Trust:** `mise/config.toml` is symlinked into the dotfiles repo. mise treats
+symlinks that resolve outside `~/.config/mise/` as untrusted and will refuse to
+load them until approved. Bootstrap handles this automatically by running
+`mise trust ~/.config/mise/config.toml` after creating the symlink. If you ever
+see a trust error manually, run:
+
+```bash
+mise trust ~/.config/mise/config.toml
+```
+
 ---
 
 ## Python projects (uv)

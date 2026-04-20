@@ -226,6 +226,11 @@ link "$DOTFILES/tmux/.tmux.conf"        "$HOME/.tmux.conf"
 link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
 link "$DOTFILES/ghostty/config"        "$HOME/.config/ghostty/config"
 link "$DOTFILES/mise/config.toml"      "$HOME/.config/mise/config.toml"
+# Trust the symlinked config — mise requires explicit trust for files that
+# resolve outside ~/.config/mise/ (i.e. symlinks into the dotfiles repo).
+if command -v mise &>/dev/null; then
+  run mise trust "$HOME/.config/mise/config.toml"
+fi
 link "$DOTFILES/git/.gitconfig"         "$HOME/.gitconfig"
 link "$DOTFILES/.editorconfig"          "$HOME/.editorconfig"
 link "$DOTFILES/.prettierrc"            "$HOME/.prettierrc"
