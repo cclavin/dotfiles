@@ -38,6 +38,13 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `mcp/local/registrations/*.json` | Private/machine-specific MCP servers (never committed) |
 | `~/.local/share/dotfiles/state.env` | Installed version, role, migration history |
 
+**Symlink contract:** tracked config files are symlinked into `$HOME`, not
+copied. Editing `~/.zshrc` and editing `dotfiles/zsh/.zshrc` are the same
+operation -- both touch the committed file. Anything that varies per machine
+(paths, exports, personal aliases) belongs in `~/.zshrc.local`, not in
+`zsh/.zshrc` directly. The same pattern applies across the repo: use
+`~/.gitconfig.local` for git and `~/.claude/settings.local.json` for Claude.
+
 ---
 
 ## Setup — macOS
@@ -247,18 +254,50 @@ Role state is saved to `~/.local/share/dotfiles/state.env` and used by `--audit`
 
 ## Upgrading an existing machine
 
+### 1. Check for local modifications before pulling
+
 ```bash
 cd ~/dotfiles
+git status
+git diff          # review any changes to tracked files
+```
+
+If tracked files (e.g. `zsh/.zshrc`) have local modifications, handle them
+before pulling -- see the symlink contract note above. Machine-specific changes
+belong in `~/.zshrc.local`; repo-worthy changes should be committed first.
+
+### 2. Pull and re-bootstrap
+
+A bare `git pull` is not enough -- it does not run migrations, create new
+symlinks, or install new tools. Always follow with bootstrap.
+
+```bash
 git pull
-bash bootstrap.sh --no-cloud   # or --cloud if you want cloud tools too
-mise install                    # pick up any runtime version changes
-bash bootstrap.sh --audit
+
+# macOS
+bash bootstrap.sh --no-cloud
+
+# Linux / WSL -- pass the same role used at initial setup
+# (check your role: grep ROLE ~/.local/share/dotfiles/state.env)
+bash bootstrap.sh --role wsl-dev --no-cloud
 ```
 
 The bootstrap run:
 1. Applies any pending migrations (structural changes between versions)
-2. Re-runs platform setup (idempotent — only installs what's missing)
+2. Re-runs platform setup (idempotent -- only installs what is missing)
 3. Validates the final state
+
+### 3. Reload and pick up runtime changes
+
+```bash
+exec zsh           # reload shell to activate new PATH, mise shims, etc.
+mise install       # install any newly declared runtimes
+bash bootstrap.sh --audit
+```
+
+> On Linux/WSL, the end-of-bootstrap validation runs before the shell reloads,
+> so mise and uv may appear as failing. This is expected -- the audit after
+> `exec zsh` is the authoritative check.
 
 ---
 
@@ -347,6 +386,37 @@ The setup scripts symlink `claude/CLAUDE.md` to `~/.claude/CLAUDE.md`, setting b
 ```bash
 ai-init go       # compile global standards + Go template into .cursorrules
 ai-init pios --stack go-api  # fetch rules from github.com/cclavin/PIOS
+```
+
+---
+
+## Machine-local customization
+
+Each tracked config file has a corresponding `.local` file that is sourced or
+included automatically and is never committed. This is the correct place for
+anything that varies per machine -- never edit the tracked file directly for
+machine-specific needs.
+
+| Tracked file | Local override | Auto-loaded? |
+|---|---|---|
+| `zsh/.zshrc` | `~/.zshrc.local` | Yes -- sourced at end of `.zshrc` |
+| `git/.gitconfig` | `~/.gitconfig.local` | Yes -- via `[include]` in `.gitconfig` |
+| `claude/settings.json.example` | `~/.claude/settings.json` + `settings.local.json` | Yes -- Claude Code merges both |
+
+Common things that belong in `~/.zshrc.local`:
+
+```bash
+# Work-specific environment
+export WORK_EMAIL="you@company.com"
+
+# WSL vault path
+export WINDOWS_VAULT_PATH="/mnt/c/Users/You/Documents/workspace/vault"
+
+# Machine-specific PATH additions
+export PATH="$PATH:/opt/some-tool/bin"
+
+# Aliases that only make sense on this machine
+alias proj='cd ~/workspace/code/myproject'
 ```
 
 ---
