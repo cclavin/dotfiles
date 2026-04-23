@@ -259,9 +259,6 @@ link "$DOTFILES/bin/ai-init"            "$HOME/.local/bin/ai-init"
 
 section "Git config & templates"
 
-run git config --global init.templatedir "$DOTFILES/agent-base/git-templates"
-success "Git templates configured to use dotfiles/agent-base/git-templates"
-
 GITCONFIG_LOCAL="$HOME/.gitconfig.local"
 if [ ! -f "$GITCONFIG_LOCAL" ]; then
   if is_dry_run; then
@@ -271,11 +268,10 @@ if [ ! -f "$GITCONFIG_LOCAL" ]; then
 
     # On WSL2: use Git Credential Manager from Windows if available
     if $IS_WSL && command -v "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe" &>/dev/null; then
-      cat >> "$GITCONFIG_LOCAL" <<'EOF'
-
-[credential]
-	helper = /mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe
-EOF
+      # ! prefix tells git to run the value as a shell command, so the quoted
+      # path with spaces is handled correctly by the shell at execution time.
+      git config --file "$GITCONFIG_LOCAL" credential.helper \
+        '!"/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe"'
       success "~/.gitconfig.local created — using Windows Git Credential Manager (WSL)"
 
     # Try libsecret first (GNOME keyring, good for desktop Debian)
@@ -301,6 +297,15 @@ EOF
   fi
 else
   info "~/.gitconfig.local already exists — skipping"
+fi
+
+# templatedir is a machine-specific absolute path — write to .gitconfig.local,
+# not the tracked .gitconfig, so bootstrap never dirties the repo.
+if is_dry_run; then
+  info "[dry-run] would set init.templatedir in ~/.gitconfig.local"
+else
+  git config --file "$GITCONFIG_LOCAL" init.templatedir "$DOTFILES/agent-base/git-templates"
+  success "Git templates configured → ~/.gitconfig.local"
 fi
 
 # ---- MCP servers ------------------------------------------------------------
