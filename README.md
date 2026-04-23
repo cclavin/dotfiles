@@ -18,6 +18,7 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `starship/starship.toml` | `~/.config/starship.toml` | Starship prompt config |
 | `mise/config.toml` | `~/.config/mise/config.toml` | Global runtime versions (Node LTS, Python 3.12) |
 | `tmux/.tmux.conf` | `~/.tmux.conf` | Tmux config (Catppuccin theme, vi keys) |
+| `ghostty/config` | `~/.config/ghostty/config` | Ghostty terminal config |
 | `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` | Global AI Agent instructions |
 | `claude/settings.json.example` | (template only) | Claude Code base config — copied to `~/.claude/settings.json` on first run |
 | `claude/settings.local.json.example` | (template only) | Machine-local Claude permission overrides |
@@ -131,6 +132,17 @@ Linux toolchain as the native Linux setup with no rewrites.
 2. **Enable WSL2** (PowerShell as admin):
    ```powershell
    wsl --install          # installs Ubuntu by default; restart when prompted
+   ```
+3. **Disable Windows PATH bleed** — without this, WSL inherits 80+ Windows
+   PATH entries on every shell start, causing noticeable startup lag and
+   cluttering `$PATH`. Run once inside WSL, then restart it from PowerShell:
+   ```bash
+   # Inside WSL terminal
+   echo -e '\n[interop]\nappendWindowsPath = false' | sudo tee -a /etc/wsl.conf
+   ```
+   ```powershell
+   # PowerShell — fully shuts down WSL so the setting takes effect
+   wsl --shutdown
    ```
 
 ### Bootstrap (inside WSL Ubuntu terminal)
@@ -331,6 +343,7 @@ bootstrap.sh               ← entrypoint: flags, migrate, OS route, role, valid
   scripts/validate.sh      ← audit system state
   scripts/style.sh         ← optional styling (--style enhanced installs Nerd Fonts)
   scripts/mcp-setup.sh     ← source mcp/env secrets and run mcp/deploy.py
+  scripts/workspace-init.sh ← create ~/workspace/code + ~/workspace/vault
   setup.sh                 ← macOS platform setup
   scripts/linux-core.sh    ← Linux/WSL core tools + symlinks
   scripts/linux-cloud.sh   ← cloud toolchain dispatcher
@@ -338,6 +351,7 @@ bootstrap.sh               ← entrypoint: flags, migrate, OS route, role, valid
     scripts/cloud/docker.sh
     scripts/cloud/gcp.sh
     scripts/cloud/terraform.sh
+    scripts/cloud/aws.sh
   roles/wsl-dev.sh
   roles/linux-dev.sh
   roles/macos-workstation.sh
