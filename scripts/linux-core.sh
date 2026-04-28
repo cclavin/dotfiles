@@ -308,6 +308,45 @@ else
   success "Git templates configured → ~/.gitconfig.local"
 fi
 
+# ---- fast-syntax-highlighting -----------------------------------------------
+# Replaces zsh-syntax-highlighting to avoid per-keystroke filesystem probes,
+# which are especially slow in WSL2 due to the Windows PATH bridge.
+
+section "Installing fast-syntax-highlighting"
+
+FSH_DIR="$HOME/.fsh"
+if [[ -d "$FSH_DIR/.git" ]]; then
+  success "fast-syntax-highlighting already installed"
+elif is_dry_run; then
+  info "[dry-run] would clone fast-syntax-highlighting to ~/.fsh"
+else
+  git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting "$FSH_DIR"
+  success "fast-syntax-highlighting installed to ~/.fsh"
+fi
+
+# ---- Systemd user timers (Linux with systemd only) --------------------------
+
+if systemctl --user is-system-running &>/dev/null || systemctl --user status &>/dev/null 2>&1; then
+  section "Systemd user timers"
+
+  SYSTEMD_USER_DIR="$HOME/.config/systemd/user"
+  run mkdir -p "$SYSTEMD_USER_DIR"
+
+  for unit in workspace-fetch.service workspace-fetch.timer; do
+    link "$DOTFILES/systemd/$unit" "$SYSTEMD_USER_DIR/$unit"
+  done
+
+  if is_dry_run; then
+    info "[dry-run] would enable workspace-fetch.timer"
+  else
+    systemctl --user daemon-reload
+    systemctl --user enable --now workspace-fetch.timer
+    success "workspace-fetch.timer enabled"
+  fi
+else
+  info "systemd user session not available — skipping timer setup"
+fi
+
 # ---- MCP servers ------------------------------------------------------------
 
 section "MCP servers"

@@ -31,9 +31,11 @@ fi
 [[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]          && source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# zsh-syntax-highlighting (must be sourced last)
-[[ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-[[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]          && source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# Syntax highlighting — fast-syntax-highlighting preferred (avoids per-keystroke
+# filesystem probes on WSL); falls back to the stock package on macOS/Homebrew.
+[[ -f ~/.fsh/fast-syntax-highlighting.plugin.zsh ]]                               && source ~/.fsh/fast-syntax-highlighting.plugin.zsh
+[[ ! -f ~/.fsh/fast-syntax-highlighting.plugin.zsh && -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[[ ! -f ~/.fsh/fast-syntax-highlighting.plugin.zsh && -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]          && source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Better ls/cat (eza + bat — graceful fallback if not installed)
 if command -v eza &>/dev/null; then
@@ -147,6 +149,62 @@ sync-code() {
     name="$(basename "$repo")"
     echo "  Pulling $name..."
     git -C "$repo" pull --ff-only 2>&1 | sed 's/^/    /'
+  done
+  echo ""
+  echo "Done."
+}
+
+# ---- Clone repos missing from workspace/code --------------------------------
+# Compares ~/workspace/code against your GitHub repos and clones any absent ones.
+# Usage: clone-missing [--dry-run]
+clone-missing() {
+  local code_dir="$HOME/workspace/code"
+  local dry_run=false
+  [[ "${1:-}" == "--dry-run" ]] && dry_run=true
+
+  if ! command -v gh &>/dev/null; then
+    echo "gh CLI not found" >&2
+    return 1
+  fi
+
+  echo ""
+  echo "── Checking GitHub repos vs $code_dir ──────────────────"
+
+  local missing=()
+  while IFS= read -r repo; do
+    local name
+    name="$(basename "$repo")"
+    if [[ ! -d "$code_dir/$name/.git" ]]; then
+      missing+=("$repo")
+    fi
+  done < <(gh repo list --limit 100 --json nameWithOwner --jq '.[].nameWithOwner')
+
+  if [[ ${#missing[@]} -eq 0 ]]; then
+    echo "  All GitHub repos already cloned."
+    echo ""
+    return 0
+  fi
+
+  echo ""
+  for repo in "${missing[@]}"; do
+    echo "  missing: $repo"
+  done
+  echo ""
+
+  if $dry_run; then
+    echo "  (dry-run — nothing cloned)"
+    return 0
+  fi
+
+  read -r -p "Clone ${#missing[@]} missing repo(s) into $code_dir? [y/N] " -n 1 answer
+  echo ""
+  [[ "$answer" =~ ^[Yy]$ ]] || return 0
+
+  for repo in "${missing[@]}"; do
+    local name
+    name="$(basename "$repo")"
+    echo "  Cloning $repo..."
+    gh repo clone "$repo" "$code_dir/$name" -- --quiet 2>&1 | sed 's/^/    /'
   done
   echo ""
   echo "Done."

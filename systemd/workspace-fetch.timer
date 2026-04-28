@@ -1,0 +1,9 @@
+[Unit]
+Description=Fetch workspace/code repos every 20 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=20min
+
+[Install]
+WantedBy=timers.target
