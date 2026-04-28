@@ -1,5 +1,11 @@
 export PATH="$HOME/.local/bin:$PATH"
 
+# Auto-attach to (or create) the main tmux session on every interactive open.
+# Guards: skip if already inside tmux, inside VS Code's terminal, or tmux is absent.
+if [[ -z "$TMUX" && -z "$VSCODE_INJECTION" ]] && command -v tmux &>/dev/null; then
+  exec tmux new-session -A -s main
+fi
+
 # mise — polyglot runtime manager (Node, Python, Go, etc.)
 # Falls back to fnm on machines not yet migrated to mise.
 if command -v mise &>/dev/null; then

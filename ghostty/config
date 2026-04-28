@@ -17,4 +17,3 @@ cursor-style-blink = false
 # tmux compatibility
 shell-integration-features = no-cursor
 confirm-close-surface = false
-initial-command = tmux new-session -A -s main
