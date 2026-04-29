@@ -1,0 +1,141 @@
+{
+  // ── Editor ────────────────────────────────────────────────────────────────
+  "editor.fontFamily": "FiraCode Nerd Font",
+  "editor.fontLigatures": false,
+  "editor.fontSize": 14,
+  "editor.lineHeight": 1.6,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.rulers": [100],
+  "editor.minimap.enabled": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.inlineSuggest.enabled": true,
+  "editor.wordWrap": "off",
+  "editor.suggestSelection": "first",
+  "editor.stickyScroll.enabled": true,
+
+  // ── Files ─────────────────────────────────────────────────────────────────
+  "files.autoSave": "onFocusChange",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.encoding": "utf8",
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true
+  },
+
+  // ── Workbench ─────────────────────────────────────────────────────────────
+  "workbench.colorTheme": "Catppuccin Mocha",
+  "catppuccin.accentColor": "sapphire",
+  "workbench.startupEditor": "none",
+  "workbench.editor.enablePreview": false,
+  "workbench.tree.indent": 14,
+  "workbench.editorAssociations": {
+    "*.dmp": "default"
+  },
+
+  // ── Terminal — default to WSL on Windows ──────────────────────────────────
+  "terminal.integrated.defaultProfile.windows": "Ubuntu-24.04 (WSL)",
+  "terminal.integrated.profiles.windows": {
+    "Ubuntu-24.04 (WSL)": {
+      "path": "wsl.exe",
+      "args": ["-d", "Ubuntu-24.04"]
+    }
+  },
+  "terminal.integrated.fontFamily": "FiraCode Nerd Font",
+  "terminal.integrated.fontSize": 13,
+
+  // ── Go ────────────────────────────────────────────────────────────────────
+  "[go]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "golang.go",
+    "editor.insertSpaces": false,
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "go.formatTool": "goimports",
+  "go.testOnSave": false,
+  "go.useLanguageServer": true,
+  "gopls": {
+    "ui.semanticTokens": true,
+    "ui.completion.usePlaceholders": true,
+    "ui.documentation.hoverKind": "FullDocumentation",
+    "ui.diagnostic.staticcheck": true
+  },
+
+  // ── Python ────────────────────────────────────────────────────────────────
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.languageServer": "Pylance",
+
+  // ── TypeScript / JavaScript / Next.js ─────────────────────────────────────
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+
+  // ── JSON / YAML / Markdown ────────────────────────────────────────────────
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+
+  // ── Git ───────────────────────────────────────────────────────────────────
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.decorations.enabled": true,
+  "scm.defaultViewMode": "tree",
+
+  // ── Remote / WSL ─────────────────────────────────────────────────────────
+  // remote.SSH.remotePlatform is machine-specific — add your hosts in VS Code
+  // Settings UI or in a local settings override, not here.
+  "remote.WSL.fileWatcher.polling": false,
+
+  // ── Claude Code ───────────────────────────────────────────────────────────
+  "claudeCode.preferredLocation": "panel",
+
+  // ── Misc ──────────────────────────────────────────────────────────────────
+  "http.systemCertificatesNode": true,
+  "security.workspace.trust.untrustedFiles": "open",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false
+}
