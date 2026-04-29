@@ -25,6 +25,9 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `claude/commands/` | `~/.claude/commands/` | Custom slash commands (`/pickup`, `/signoff`) |
 | `mcp/servers/*.json` | (source of truth) | Canonical MCP server definitions |
 | `mcp/registrations/*.json` | (source of truth) | Per-tool MCP server lists |
+| `vscode/settings.json` | (deployed via script) | Shared editor settings for VS Code and Antigravity (Go, Python, TypeScript, WSL terminal) |
+| `templates/_base/` | `~/workspace/code/_template` | Language-agnostic project scaffold used by `new-project` |
+| `agent-base/templates/` | (used by `ai-init`) | Per-language AI coding standards (go, python, nextjs) |
 | `Brewfile` | (not symlinked) | macOS tool list for `brew bundle` |
 | `AGENTS.md` | (repo polyfills) | Repository-specific AI Agent instructions |
 
@@ -38,6 +41,8 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `mcp/env` | MCP server secrets — copy from `mcp/env.example` and fill in |
 | `mcp/local/registrations/*.json` | Private/machine-specific MCP servers (never committed) |
 | `~/.local/share/dotfiles/state.env` | Installed version, role, migration history |
+| `%APPDATA%\Code\User\settings.json` | VS Code settings — deployed by `scripts/vscode-deploy.sh` on bootstrap (Windows path, cannot symlink from WSL) |
+| `%AppData%\Antigravity\User\settings.json` | Antigravity settings — same source, same deploy script |
 
 **Symlink contract:** tracked config files are symlinked into `$HOME`, not
 copied. Editing `~/.zshrc` and editing `dotfiles/zsh/.zshrc` are the same
@@ -397,9 +402,23 @@ The setup scripts symlink `claude/CLAUDE.md` to `~/.claude/CLAUDE.md`, setting b
 `AGENTS.md` at the repo root is polyfilled to `.cursorrules`, `.windsurfrules`, `.github/copilot-instructions.md`, and local `CLAUDE.md`. It encodes 11 architectural rules including the router pattern, shared library usage, version pin management, state tracking, and migration conventions.
 
 ### Scaffolding AI rules into projects (`bin/ai-init`)
+
+Writes `CLAUDE.md` as the primary output (read by Claude Code CLI), then
+copies it to `.cursorrules` and `.github/copilot-instructions.md` for
+compatibility with other tools.
+
 ```bash
-ai-init go       # compile global standards + Go template into .cursorrules
+ai-init go                   # global standards + Go template → CLAUDE.md
+ai-init python               # global standards + Python/uv template → CLAUDE.md
+ai-init nextjs               # global standards + Next.js/Supabase/Vercel template → CLAUDE.md
 ai-init pios --stack go-api  # fetch rules from github.com/cclavin/PIOS
+```
+
+Or use `new-project` to scaffold, init, and push in one command:
+
+```bash
+new-project my-app --lang go      # copy _template, run ai-init go, git init, gh repo create
+new-project my-app --lang nextjs --public
 ```
 
 ---
