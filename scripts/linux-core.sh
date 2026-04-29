@@ -206,6 +206,23 @@ else
   info "fnm will be activated on next shell reload (via .zshrc)"
 fi
 
+# ---- Go tools (requires Go to be installed) ---------------------------------
+# goimports: formatting + import management (used by VS Code Go extension)
+
+if command -v go &>/dev/null; then
+  section "Installing Go tools"
+  if command -v goimports &>/dev/null; then
+    success "goimports already installed"
+  elif is_dry_run; then
+    info "[dry-run] would install goimports via go install"
+  else
+    go install golang.org/x/tools/cmd/goimports@latest
+    success "goimports installed to $(go env GOPATH)/bin"
+  fi
+else
+  info "Go not found — skipping Go tools (install Go first, then re-run)"
+fi
+
 # ---- zsh (if not installed) -------------------------------------------------
 
 if ! command -v zsh &>/dev/null; then
@@ -346,6 +363,10 @@ if systemctl --user is-system-running &>/dev/null || systemctl --user status &>/
 else
   info "systemd user session not available — skipping timer setup"
 fi
+
+# ---- VS Code / Antigravity settings (WSL only) ------------------------------
+
+bash "$DOTFILES/scripts/vscode-deploy.sh"
 
 # ---- MCP servers ------------------------------------------------------------
 
