@@ -17,3 +17,6 @@ cursor-style-blink = false
 # tmux compatibility
 shell-integration-features = no-cursor
 confirm-close-surface = false
+
+# Ctrl/Command are swapped at OS level; pass cmd+a through as ^A for tmux prefix
+keybind = cmd+a=text:\x01
