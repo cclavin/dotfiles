@@ -3,6 +3,7 @@
 
 add_newline = true
 command_timeout = 2000
+scan_timeout = 500
 
 format = """
 $directory$git_branch$git_status$python$golang$nodejs$cmd_duration
