@@ -1,3 +1,8 @@
+---
+description: Write a session handoff file summarising what was done and what comes next
+disable-model-invocation: true
+---
+
 Write a session handoff file to `$HOME/.claude/projects/-home-cclav-workspace/memory/sessions/` using today's date and time as the filename in the format `YYYY-MM-DD-HH-MM.md`. Create the directory first if it doesn't exist.
 
 The file should be a complete, standalone context document structured as follows:

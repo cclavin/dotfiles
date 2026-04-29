@@ -1,3 +1,8 @@
+---
+description: Resume from the most recent session handoff file
+disable-model-invocation: true
+---
+
 Run the following bash command to find the sessions directory:
 
 ```bash
