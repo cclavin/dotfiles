@@ -1,0 +1,42 @@
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Go ────────────────────────────────────────────────────────────────────────
+/bin/
+/dist/
+*.exe
+*.test
+*.out
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+.python-version
+*.egg-info/
+dist/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# ── Node / TypeScript / Next.js ───────────────────────────────────────────────
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# ── Tooling ───────────────────────────────────────────────────────────────────
+.DS_Store
+.mise.local.toml
+*.swp
+*.swo
+.idea/
+*.iml
+
+# ── Claude / AI context (project-level, not committed) ────────────────────────
+.claude/

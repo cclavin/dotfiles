@@ -14,8 +14,9 @@ elif command -v fnm &>/dev/null; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
 
-# Go — PATH for /usr/local/go installs (cloud/go.sh); no-op when Go is absent
+# Go — compiler and installed tools (go install puts binaries in $GOPATH/bin)
 [[ -d /usr/local/go/bin ]] && export PATH="$PATH:/usr/local/go/bin"
+[[ -d "$HOME/go/bin" ]]    && export PATH="$PATH:$HOME/go/bin"
 
 # Starship prompt
 if command -v starship &>/dev/null; then
@@ -85,23 +86,45 @@ _load_secret() {
 export ANTHROPIC_API_KEY=$(_load_secret ANTHROPIC_API_KEY)
 
 # ---- New project scaffold ---------------------------------------------------
-# Copies _template, inits git, creates a private GitHub repo.
-# Usage: new-project <name> [--public]
+# Copies _template, runs ai-init, inits git, creates a private GitHub repo.
+# Usage: new-project <name> [--lang <template>] [--public]
+#   --lang go | python | nextjs   runs ai-init to populate CLAUDE.md
+#   --public                       creates a public GitHub repo
 new-project() {
-  local name="${1:?Usage: new-project <name> [--public]}"
+  local name="${1:?Usage: new-project <name> [--lang <template>] [--public]}"
   local visibility="--private"
-  [[ "$*" == *--public* ]] && visibility="--public"
+  local lang=""
+
+  shift
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --public) visibility="--public" ;;
+      --lang)   lang="${2:?--lang requires a value}"; shift ;;
+    esac
+    shift
+  done
 
   local code_base="$HOME/workspace/code"
-
+  local template="$code_base/_template"
   local dest="$code_base/$name"
+
   if [[ -d "$dest" ]]; then
     echo "Error: $dest already exists" >&2
     return 1
   fi
 
-  cp -r "$code_base/_template" "$dest"
+  if [[ ! -d "$template" ]]; then
+    echo "Error: _template not found at $template" >&2
+    return 1
+  fi
+
+  cp -r "$template" "$dest"
   cd "$dest" || return 1
+
+  if [[ -n "$lang" ]]; then
+    ai-init "$lang"
+  fi
+
   git init && git add . && git commit -m "Initial commit"
   gh repo create "$name" "$visibility" --source=. --remote=origin --push
   echo "Ready: https://github.com/cclavin/$name"

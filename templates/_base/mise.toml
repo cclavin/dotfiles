@@ -1,0 +1,8 @@
+# mise.toml — per-project runtime pins
+# Uncomment and set versions as needed. These override the global ~/.config/mise/config.toml.
+# Run: mise install
+#
+# [tools]
+# node   = "22"
+# python = "3.12"
+# go     = "1.22"

@@ -27,6 +27,20 @@ section "Workspace directories"
 run mkdir -p "$CODE_DIR"
 success "code/   →  $CODE_DIR"
 
+# Symlink _template into workspace/code so new-project can find it
+TEMPLATE_LINK="$CODE_DIR/_template"
+TEMPLATE_SRC="$DOTFILES/templates/_base"
+if [[ -L "$TEMPLATE_LINK" ]]; then
+  success "_template →  $TEMPLATE_LINK (symlink already exists)"
+elif [[ -d "$TEMPLATE_LINK" ]]; then
+  warn "_template exists as a real directory at $TEMPLATE_LINK — skipping symlink"
+elif is_dry_run; then
+  info "[dry-run] would symlink $TEMPLATE_LINK → $TEMPLATE_SRC"
+else
+  ln -sf "$TEMPLATE_SRC" "$TEMPLATE_LINK"
+  success "_template →  $TEMPLATE_LINK → $TEMPLATE_SRC"
+fi
+
 # On WSL: if WINDOWS_VAULT_PATH is set, symlink vault to the Windows filesystem
 # so Obsidian (Windows) and the terminal (WSL) share the same files.
 # Set WINDOWS_VAULT_PATH in ~/.zshrc.local before running bootstrap.
