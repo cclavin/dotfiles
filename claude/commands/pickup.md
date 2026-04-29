@@ -1,4 +1,12 @@
-Read the most recent session handoff file from `/Users/Caleb/.claude/projects/-Users-Caleb-projects/memory/sessions/`. To find it, list the files in that directory and pick the one with the latest timestamp in its filename.
+Run the following bash command to find the sessions directory:
+
+```bash
+ls -t "$HOME/.claude/projects/-home-cclav-workspace/memory/sessions/" 2>/dev/null | head -5
+```
+
+If the directory doesn't exist yet, say "No previous session handoffs found" and ask what the user wants to work on.
+
+Otherwise, read the file with the most recent timestamp in its filename.
 
 After reading it, do the following:
 

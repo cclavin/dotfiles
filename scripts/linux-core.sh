@@ -252,6 +252,7 @@ link "$DOTFILES/git/.gitconfig"         "$HOME/.gitconfig"
 link "$DOTFILES/.editorconfig"          "$HOME/.editorconfig"
 link "$DOTFILES/.prettierrc"            "$HOME/.prettierrc"
 link "$DOTFILES/claude/CLAUDE.md"       "$HOME/.claude/CLAUDE.md"
+link "$DOTFILES/claude/commands"        "$HOME/.claude/commands"
 
 # settings.json — create from template if missing (machine-owned, not symlinked).
 # MCP servers get merged in by mcp/deploy.py after this step.
