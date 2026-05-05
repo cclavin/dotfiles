@@ -38,8 +38,9 @@ fi
 [[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 [[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]          && source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# Syntax highlighting — fast-syntax-highlighting preferred (avoids per-keystroke
-# filesystem probes on WSL); falls back to the stock package on macOS/Homebrew.
+# Syntax highlighting — fsh on WSL (avoids per-keystroke filesystem probes over
+# VirtioFS); falls back to zsh-syntax-highlighting on macOS/Linux. To switch
+# any machine to zsh-syntax-highlighting, simply remove ~/.fsh and restart.
 [[ -f ~/.fsh/fast-syntax-highlighting.plugin.zsh ]]                               && source ~/.fsh/fast-syntax-highlighting.plugin.zsh
 [[ ! -f ~/.fsh/fast-syntax-highlighting.plugin.zsh && -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 [[ ! -f ~/.fsh/fast-syntax-highlighting.plugin.zsh && -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]          && source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

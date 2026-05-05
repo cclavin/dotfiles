@@ -326,20 +326,28 @@ else
   success "Git templates configured → ~/.gitconfig.local"
 fi
 
-# ---- fast-syntax-highlighting -----------------------------------------------
-# Replaces zsh-syntax-highlighting to avoid per-keystroke filesystem probes,
-# which are especially slow in WSL2 due to the Windows PATH bridge.
+# ---- fast-syntax-highlighting (WSL only) ------------------------------------
+# fsh avoids the per-keystroke filesystem probes that zsh-syntax-highlighting
+# makes, which cause noticeable lag over WSL's VirtioFS layer. On native Linux
+# and macOS, zsh-syntax-highlighting (installed above via apt / Brewfile) is
+# the standard choice and has no perceptible lag. .zshrc loads fsh when
+# ~/.fsh exists and falls back to zsh-syntax-highlighting otherwise, so
+# removing ~/.fsh on any machine is enough to switch without touching .zshrc.
 
-section "Installing fast-syntax-highlighting"
-
-FSH_DIR="$HOME/.fsh"
-if [[ -d "$FSH_DIR/.git" ]]; then
-  success "fast-syntax-highlighting already installed"
-elif is_dry_run; then
-  info "[dry-run] would clone fast-syntax-highlighting to ~/.fsh"
+if $IS_WSL; then
+  section "Installing fast-syntax-highlighting (WSL)"
+  FSH_DIR="$HOME/.fsh"
+  if [[ -d "$FSH_DIR/.git" ]]; then
+    success "fast-syntax-highlighting already installed"
+  elif is_dry_run; then
+    info "[dry-run] would clone fast-syntax-highlighting to ~/.fsh"
+  else
+    git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting "$FSH_DIR"
+    success "fast-syntax-highlighting installed to ~/.fsh"
+  fi
 else
-  git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting "$FSH_DIR"
-  success "fast-syntax-highlighting installed to ~/.fsh"
+  section "Skipping fast-syntax-highlighting (non-WSL)"
+  info "zsh-syntax-highlighting (apt) will be used — remove ~/.fsh to switch on any existing machine"
 fi
 
 # ---- Systemd user timers (Linux with systemd only) --------------------------
