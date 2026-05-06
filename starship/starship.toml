@@ -12,7 +12,6 @@ format = """
 $directory$git_branch$git_status$python$golang$nodejs$cmd_duration
 $character"""
 
-right_format = """$hostname"""
 
 [directory]
 truncation_length = 3
@@ -48,12 +47,6 @@ version_format = "v${major}.${minor}"
 symbol = " "
 style = "bold green"
 version_format = "v${major}.${minor}"
-
-[hostname]
-ssh_only = true
-format = "[@$hostname]($style) "
-style = "bold red"
-disabled = false
 
 [cmd_duration]
 min_time = 2000
