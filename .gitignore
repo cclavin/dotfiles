@@ -37,6 +37,7 @@ desktop.ini
 mcp/local/
 
 # ---- Claude Code — machine-local (never commit) ----------------------------
+claude/settings.json
 claude/settings.local.json
 
 # ---- Machine-local state (never commit) -------------------------------------
