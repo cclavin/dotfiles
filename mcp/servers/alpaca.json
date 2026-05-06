@@ -1,0 +1,13 @@
+{
+  "_comment": "Alpaca Trading API MCP server — stocks, options, crypto, and market data.",
+  "command": "npx",
+  "args": [
+    "-y",
+    "@alpacahq/alpaca-mcp-server"
+  ],
+  "env": {
+    "ALPACA_API_KEY": "${ALPACA_API_KEY}",
+    "ALPACA_API_SECRET": "${ALPACA_API_SECRET}",
+    "ALPACA_PAPER": "true"
+  }
+}

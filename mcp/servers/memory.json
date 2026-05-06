@@ -1,0 +1,8 @@
+{
+  "_comment": "Memory MCP server — provides a persistent knowledge graph for AI agents.",
+  "command": "npx",
+  "args": [
+    "-y",
+    "@modelcontextprotocol/server-memory"
+  ]
+}

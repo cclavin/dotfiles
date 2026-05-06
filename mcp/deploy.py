@@ -51,7 +51,7 @@ HOME = Path.home()
 TOOL_CONFIGS = {
     "claude-code": {
         "registration": str(MCP_ROOT / "registrations" / "claude-code.json"),
-        "live_config": str(HOME / ".claude" / "settings.json"),
+        "live_config": str(HOME / ".claude.json"),
         "format": "json",
         "mcp_key": "mcpServers",
     },

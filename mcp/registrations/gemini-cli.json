@@ -30,6 +30,28 @@
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "alpaca": {
+      "command": "npx",
+      "args": ["-y", "@alpacahq/alpaca-mcp-server"],
+      "env": {
+        "ALPACA_API_KEY": "${ALPACA_API_KEY}",
+        "ALPACA_API_SECRET": "${ALPACA_API_SECRET}",
+        "ALPACA_PAPER": "true"
+      }
+    },
+    "plaid": {
+      "command": "npx",
+      "args": ["-y", "plaid-mcp-server"],
+      "env": {
+        "PLAID_CLIENT_ID": "${PLAID_CLIENT_ID}",
+        "PLAID_SECRET": "${PLAID_SECRET}",
+        "PLAID_ENV": "sandbox"
+      }
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
     }
   }
 }

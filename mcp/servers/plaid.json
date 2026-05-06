@@ -1,0 +1,13 @@
+{
+  "_comment": "Plaid MCP server — connects to financial data (transactions, auth).",
+  "command": "npx",
+  "args": [
+    "-y",
+    "plaid-mcp-server"
+  ],
+  "env": {
+    "PLAID_CLIENT_ID": "${PLAID_CLIENT_ID}",
+    "PLAID_SECRET": "${PLAID_SECRET}",
+    "PLAID_ENV": "sandbox"
+  }
+}
