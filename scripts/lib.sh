@@ -73,6 +73,7 @@ detect_os() {
       ;;
     Linux)
       IS_LINUX=true
+      export DEBIAN_FRONTEND=noninteractive
       if grep -qi microsoft /proc/version 2>/dev/null; then
         IS_WSL=true
       fi

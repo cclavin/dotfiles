@@ -31,7 +31,7 @@ sudo chmod a+r /etc/apt/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $DISTRO_CODENAME main" | \
   sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
 
-sudo apt-get update -qq
-sudo apt-get install -y -qq terraform
+sudo apt-get update
+sudo apt-get install -y terraform
 
 success "Terraform installed"

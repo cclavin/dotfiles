@@ -28,7 +28,7 @@ sudo chmod a+r /etc/apt/keyrings/cloud.google.gpg
 echo "deb [signed-by=/etc/apt/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | \
   sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list > /dev/null
 
-sudo apt-get update -qq
-sudo apt-get install -y -qq google-cloud-cli
+sudo apt-get update
+sudo apt-get install -y google-cloud-cli
 
 success "Google Cloud CLI installed"

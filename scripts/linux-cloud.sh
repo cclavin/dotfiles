@@ -52,8 +52,8 @@ if is_dry_run; then
   info "[dry-run] would install prerequisites: apt-transport-https ca-certificates curl gnupg lsb-release wget tar"
   info "[dry-run] distro: ${DISTRO_ID}/${DISTRO_CODENAME}"
 else
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq apt-transport-https ca-certificates curl gnupg lsb-release wget tar
+  sudo apt-get update
+  sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release wget tar
   sudo install -m 0755 -d /etc/apt/keyrings
 fi
 

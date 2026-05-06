@@ -43,8 +43,8 @@ fi
 if is_dry_run; then
   info "[dry-run] would install via apt: git curl unzip gnupg pass jq ripgrep fzf xz-utils tmux zsh-autosuggestions zsh-syntax-highlighting bat"
 else
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq \
+  sudo apt-get update
+  sudo apt-get install -y \
     git \
     curl \
     unzip \
@@ -88,7 +88,7 @@ if command -v eza &>/dev/null; then
 elif is_dry_run; then
   info "[dry-run] would install eza (apt on Ubuntu 24.04+, GitHub release otherwise)"
 elif apt-cache show eza &>/dev/null 2>&1; then
-  sudo apt-get install -y -qq eza
+  sudo apt-get install -y eza
   success "eza installed via apt"
 else
   EZA_VERSION=$(curl -s "https://api.github.com/repos/eza-community/eza/releases/latest" \
@@ -156,8 +156,8 @@ else
   sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
     | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq gh
+  sudo apt-get update
+  sudo apt-get install -y gh
   success "gh CLI installed"
 fi
 
@@ -230,7 +230,7 @@ if ! command -v zsh &>/dev/null; then
   if is_dry_run; then
     info "[dry-run] would install zsh via apt"
   else
-    sudo apt-get install -y -qq zsh
+    sudo apt-get install -y zsh
     info "zsh installed. To set as default shell: chsh -s \$(which zsh)"
   fi
 fi
