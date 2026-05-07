@@ -60,6 +60,9 @@ fi
 # Workspace navigation
 alias cw='cd ~/workspace/code'
 
+# Auto-fetch git remote in background on directory change (keeps Starship ahead/behind counts fresh)
+chpwd() { git fetch --quiet &>/dev/null & }
+
 # ---- Secure secret loading --------------------------------------------------
 # Loads a secret from the OS-appropriate credential store.
 # Never stores secrets in plain text files.
