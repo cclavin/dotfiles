@@ -2,7 +2,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Auto-attach to (or create) the main tmux session on every interactive open.
 # Guards: skip if already inside tmux, inside VS Code's terminal, or tmux is absent.
-if [[ -z "$TMUX" && -z "$VSCODE_INJECTION" ]] && command -v tmux &>/dev/null; then
+if [[ -z "$TMUX" && -z "$VSCODE_INJECTION" && "$TERM_PROGRAM" != "vscode" ]] && command -v tmux &>/dev/null; then
   exec tmux new-session -A -s main
 fi
 
@@ -170,7 +170,7 @@ sync-code() {
   fi
 
   echo ""
-  read -r -p "Pull all repos? [y/N] " -n 1 answer
+  read -rk 1 "answer?Pull all repos? [y/N] "
   echo ""
   [[ "$answer" =~ ^[Yy]$ ]] || return 0
 
@@ -226,7 +226,7 @@ clone-missing() {
     return 0
   fi
 
-  read -r -p "Clone ${#missing[@]} missing repo(s) into $code_dir? [y/N] " -n 1 answer
+  read -rk 1 "answer?Clone ${#missing[@]} missing repo(s) into $code_dir? [y/N] "
   echo ""
   [[ "$answer" =~ ^[Yy]$ ]] || return 0
 
