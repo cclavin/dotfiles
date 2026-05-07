@@ -2,7 +2,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Auto-attach to (or create) the main tmux session on every interactive open.
 # Guards: skip if already inside tmux, inside VS Code's terminal, or tmux is absent.
-if [[ -z "$TMUX" && -z "$VSCODE_INJECTION" && "$TERM_PROGRAM" != "vscode" && -z "$VSCODE_IPC_HOOK_CLI" ]] && command -v tmux &>/dev/null; then
+if [[ -z "$TMUX" && -z "$IS_VSCODE_TERMINAL" && "$TERM_PROGRAM" != "vscode" && -t 0 ]] && command -v tmux &>/dev/null; then
   exec tmux new-session -A -s main
 fi
 
