@@ -1,8 +1,11 @@
 export PATH="$HOME/.local/bin:$PATH"
 
-# Auto-attach to (or create) the main tmux session in Windows Terminal only.
-# WT_SESSION is set by Windows Terminal via WSLENV; absent in VS Code, SSH, and headless shells.
-if [[ -z "$TMUX" && -n "$WT_SESSION" && -t 0 ]] && command -v tmux &>/dev/null; then
+# Auto-attach to (or create) the main tmux session.
+# macOS: skip only VS Code (TERM_PROGRAM is reliable on native macOS).
+# WSL/Linux: Windows Terminal only — WT_SESSION naturally excludes VS Code on Windows.
+if [[ -z "$TMUX" && -t 0 ]] \
+   && { [[ "$OSTYPE" == "darwin"* && "$TERM_PROGRAM" != "vscode" ]] || [[ -n "$WT_SESSION" ]]; } \
+   && command -v tmux &>/dev/null; then
   exec tmux new-session -A -s main
 fi
 
@@ -61,7 +64,7 @@ fi
 alias cw='cd ~/workspace/code'
 
 # Auto-fetch git remote in background on directory change (keeps Starship ahead/behind counts fresh)
-chpwd() { git fetch --quiet &>/dev/null & }
+chpwd() { git rev-parse --git-dir &>/dev/null && git fetch --quiet &>/dev/null &| }
 
 # ---- Secure secret loading --------------------------------------------------
 # Loads a secret from the OS-appropriate credential store.
