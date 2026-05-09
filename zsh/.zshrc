@@ -2,9 +2,11 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Auto-attach to (or create) the main tmux session.
 # macOS: skip only VS Code (TERM_PROGRAM is reliable on native macOS).
-# WSL/Linux: Windows Terminal only — WT_SESSION naturally excludes VS Code on Windows.
+# WSL/Linux: Windows Terminal (WT_SESSION) or SSH (SSH_CLIENT/SSH_TTY), but not VS Code Remote.
 if [[ -z "$TMUX" && -t 0 ]] \
-   && { [[ "$OSTYPE" == "darwin"* && "$TERM_PROGRAM" != "vscode" ]] || [[ -n "$WT_SESSION" ]]; } \
+   && { [[ "$OSTYPE" == "darwin"* && "$TERM_PROGRAM" != "vscode" ]] \
+        || [[ -n "$WT_SESSION" ]] \
+        || [[ ( -n "$SSH_CLIENT" || -n "$SSH_TTY" ) && -z "$VSCODE_INJECTION" ]]; } \
    && command -v tmux &>/dev/null; then
   exec tmux new-session -A -s main
 fi
