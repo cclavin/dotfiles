@@ -3,4 +3,5 @@ Description=Background git fetch for workspace/code repos
 
 [Service]
 Type=oneshot
+TimeoutStartSec=30
 ExecStart=/bin/bash -c 'for d in %h/workspace/code/*/; do [ -d "$d/.git" ] && git -C "$d" fetch --all --quiet 2>/dev/null; done'
