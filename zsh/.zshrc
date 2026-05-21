@@ -66,7 +66,10 @@ fi
 alias cw='cd ~/workspace/code'
 
 # Auto-fetch git remote in background on directory change (keeps Starship ahead/behind counts fresh)
-chpwd() { git rev-parse --git-dir &>/dev/null && git fetch --quiet &>/dev/null &| }
+# After fetch completes, SIGUSR1 triggers a prompt redraw so behind/ahead shows on first visit.
+_git_fetch_and_refresh() { git fetch --quiet 2>/dev/null; kill -USR1 $$ }
+TRAPUSR1() { zle && zle reset-prompt }
+chpwd() { git rev-parse --git-dir &>/dev/null && _git_fetch_and_refresh &| }
 
 # ---- Secure secret loading --------------------------------------------------
 # Loads a secret from the OS-appropriate credential store.
