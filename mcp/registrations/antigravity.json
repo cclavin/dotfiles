@@ -1,16 +1,11 @@
 {
-  "_comment": "Antigravity MCP registration. Config lives at ~/.gemini/antigravity/mcp_config.json. Deploy with: python $AI_WORKSPACE_ROOT/scripts/mcp-deploy.py --tool antigravity",
+  "_comment": "Antigravity MCP registration. Config lives at ~/.gemini/antigravity/mcp_config.json. Deploy with: bash scripts/mcp-setup.sh --tool antigravity",
   "_manage": "Source of truth is servers/*.json. This file lists which servers are registered to Antigravity.",
-  "_status": "pending — ai-workspace-docs not yet in live config",
   "_note": "Antigravity's live config also has StitchMCP and cloudrun (both disabled, Google-specific). Those are managed via Antigravity UI and are not tracked here.",
   "mcpServers": {
     "ai-workspace-docs": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "G:\\ai-workspace\\docs"]
-    },
-    "supabase-local": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://127.0.0.1:54321/mcp", "--header", "apikey: ${SUPABASE_ACCESS_TOKEN}"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${AI_WORKSPACE_ROOT}/docs"]
     },
     "github": {
       "command": "npx",

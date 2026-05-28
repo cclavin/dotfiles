@@ -63,6 +63,8 @@ TOOL_CONFIGS = {
     },
     "antigravity": {
         "registration": str(MCP_ROOT / "registrations" / "antigravity.json"),
+        # Antigravity runs on Windows — run this script from PowerShell, not WSL,
+        # so that HOME resolves to %USERPROFILE% and the path exists.
         "live_config": str(HOME / ".gemini" / "antigravity" / "mcp_config.json"),
         "format": "json",
         "mcp_key": "mcpServers",
