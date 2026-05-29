@@ -87,7 +87,8 @@ fi
 
 # Copy to other tools for compatibility
 mkdir -p .github
+cp CLAUDE.md AGENTS.md
 cp CLAUDE.md .cursorrules
 cp CLAUDE.md .github/copilot-instructions.md
 
-echo "Done: CLAUDE.md written (+ .cursorrules, .github/copilot-instructions.md)"
+echo "Done: CLAUDE.md, AGENTS.md written (+ .cursorrules, .github/copilot-instructions.md)"
