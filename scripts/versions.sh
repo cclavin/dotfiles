@@ -14,6 +14,7 @@ _DOTFILES_VERSIONS_LOADED=1
 # ---- Pinned Versions --------------------------------------------------------
 
 DELTA_VERSION="0.18.2"
+FASTFETCH_VERSION="2.64.2"
 GO_VERSION="1.26.1"
 
 # Runtime versions managed by mise (see mise/config.toml for authoritative values)

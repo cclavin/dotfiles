@@ -1,5 +1,16 @@
 export PATH="$HOME/.local/bin:$PATH"
 
+# Show system info only when a fresh tmux session is about to be created (not on re-attach).
+if [[ -z "$TMUX" && -t 0 ]] \
+   && { [[ "$OSTYPE" == "darwin"* && "$TERM_PROGRAM" != "vscode" ]] \
+        || [[ -n "$WT_SESSION" ]] \
+        || [[ ( -n "$SSH_CLIENT" || -n "$SSH_TTY" ) && -z "$VSCODE_INJECTION" ]]; } \
+   && command -v fastfetch &>/dev/null \
+   && command -v tmux &>/dev/null \
+   && ! tmux has-session -t main 2>/dev/null; then
+  fastfetch
+fi
+
 # Auto-attach to (or create) the main tmux session.
 # macOS: skip only VS Code (TERM_PROGRAM is reliable on native macOS).
 # WSL/Linux: Windows Terminal (WT_SESSION) or SSH (SSH_CLIENT/SSH_TTY), but not VS Code Remote.

@@ -116,6 +116,26 @@ else
   success "delta installed"
 fi
 
+# ---- fastfetch (system info on login) ---------------------------------------
+
+section "Installing fastfetch"
+
+if command -v fastfetch &>/dev/null; then
+  success "fastfetch already installed: $(fastfetch --version | head -1)"
+elif is_dry_run; then
+  info "[dry-run] would install fastfetch v${FASTFETCH_VERSION} (.deb from GitHub)"
+elif apt-cache show fastfetch &>/dev/null 2>&1; then
+  sudo apt-get install -y fastfetch
+  success "fastfetch installed via apt"
+else
+  FASTFETCH_DEB="fastfetch-linux-amd64.deb"
+  wget -qO "/tmp/${FASTFETCH_DEB}" \
+    "https://github.com/fastfetch-cli/fastfetch/releases/download/${FASTFETCH_VERSION}/${FASTFETCH_DEB}"
+  sudo dpkg -i "/tmp/${FASTFETCH_DEB}"
+  rm -f "/tmp/${FASTFETCH_DEB}"
+  success "fastfetch installed from GitHub release (v${FASTFETCH_VERSION})"
+fi
+
 # ---- starship prompt --------------------------------------------------------
 
 section "Installing starship"
@@ -241,6 +261,7 @@ section "Symlinking config files"
 link "$DOTFILES/zsh/.zshrc"             "$HOME/.zshrc"
 link "$DOTFILES/tmux/.tmux.conf"        "$HOME/.tmux.conf"
 link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
+link "$DOTFILES/fastfetch/config.jsonc" "$HOME/.config/fastfetch/config.jsonc"
 link "$DOTFILES/ghostty/config"        "$HOME/.config/ghostty/config"
 link "$DOTFILES/mise/config.toml"      "$HOME/.config/mise/config.toml"
 # Trust the symlinked config — mise requires explicit trust for files that
