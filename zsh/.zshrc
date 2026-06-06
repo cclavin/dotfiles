@@ -68,9 +68,17 @@ alias cw='cd ~/workspace/code'
 # Auto-fetch git remote in background on directory change (keeps Starship ahead/behind counts fresh)
 # After fetch completes, SIGUSR1 triggers a prompt redraw so behind/ahead shows on first visit.
 # Guarded to interactive shells only — non-interactive shells (agents, scripts) lack ZLE.
+# _zle_at_prompt flag prevents reset-prompt firing during command execution (which would print
+# the raw $PROMPT string literally because zle returns true whenever ZLE is enabled, not only
+# when sitting at the prompt).
 if [[ -o interactive ]]; then
+  _zle_at_prompt=0
+  precmd_functions+=( _zle_mark_at_prompt )
+  preexec_functions+=( _zle_mark_not_at_prompt )
+  _zle_mark_at_prompt() { _zle_at_prompt=1 }
+  _zle_mark_not_at_prompt() { _zle_at_prompt=0 }
   _git_fetch_and_refresh() { git fetch --quiet 2>/dev/null; kill -USR1 $$ }
-  TRAPUSR1() { zle && zle reset-prompt }
+  TRAPUSR1() { (( _zle_at_prompt )) && zle reset-prompt }
   chpwd() { git rev-parse --git-dir &>/dev/null && _git_fetch_and_refresh &| }
 fi
 
