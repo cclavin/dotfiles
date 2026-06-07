@@ -15,6 +15,7 @@ brew "uv"           # Python package/project/tool manager (replaces pip/venv/pye
 brew "fzf"                      # Fuzzy finder (Ctrl+R history, Ctrl+T file search)
 brew "ripgrep"                  # Fast grep — used by Claude Code and VS Code search
 brew "jq"                       # JSON processor
+brew "yq"                        # YAML/TOML/XML processor (jq-compatible syntax)
 brew "starship"                 # Cross-shell prompt
 brew "zoxide"                   # Smart cd (use 'z' instead of 'cd')
 brew "zsh-autosuggestions"      # Grey ghost completions as you type

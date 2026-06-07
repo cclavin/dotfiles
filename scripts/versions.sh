@@ -15,6 +15,7 @@ _DOTFILES_VERSIONS_LOADED=1
 
 DELTA_VERSION="0.18.2"
 FASTFETCH_VERSION="2.64.2"
+YQ_VERSION="4.53.3"
 GO_VERSION="1.26.1"
 
 # Runtime versions managed by mise (see mise/config.toml for authoritative values)

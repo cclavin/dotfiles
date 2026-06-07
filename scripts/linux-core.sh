@@ -116,6 +116,23 @@ else
   success "delta installed"
 fi
 
+# ---- yq (jq for YAML/TOML/XML) ----------------------------------------------
+# mikefarah/yq (Go). Note: Debian's apt 'yq' is a different (Python) tool —
+# install the Go binary from GitHub release to get the jq-compatible syntax.
+
+section "Installing yq"
+
+if command -v yq &>/dev/null && yq --version 2>/dev/null | grep -q mikefarah; then
+  success "yq already installed: $(yq --version)"
+elif is_dry_run; then
+  info "[dry-run] would install yq v${YQ_VERSION} (binary from GitHub)"
+else
+  curl -sLo /tmp/yq "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
+  sudo install /tmp/yq /usr/local/bin/yq
+  rm -f /tmp/yq
+  success "yq installed (v${YQ_VERSION})"
+fi
+
 # ---- fastfetch (system info on login) ---------------------------------------
 
 section "Installing fastfetch"
