@@ -119,6 +119,7 @@ check_link "$HOME/.gitconfig"
 check_link "$HOME/.editorconfig"
 check_link "$HOME/.prettierrc"
 check_link "$HOME/.claude/CLAUDE.md"
+check_link "$HOME/.claude/commands"
 check_file "$HOME/.claude/settings.json" "~/.claude/settings.json"
 
 check_link "$HOME/.tmux.conf"
@@ -202,6 +203,10 @@ if [[ -n "$CURRENT_ROLE" ]]; then
       ;;
     linux-dev)
       info "No additional role requirements"
+      ;;
+    homelab)
+      check_cmd "docker"
+      check_cmd "go"
       ;;
     macos-workstation)
       check_cmd "brew"
