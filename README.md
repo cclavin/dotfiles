@@ -16,6 +16,7 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `.editorconfig` | `~/.editorconfig` | Universal editor whitespace/encoding rules |
 | `.prettierrc` | `~/.prettierrc` | Default Prettier formatting |
 | `starship/starship.toml` | `~/.config/starship.toml` | Starship prompt config |
+| `fastfetch/config.jsonc` | `~/.config/fastfetch/config.jsonc` | System info displayed on fresh session start (Linux/macOS) |
 | `mise/config.toml` | `~/.config/mise/config.toml` | Global runtime versions (Node LTS, Python 3.12) |
 | `tmux/.tmux.conf` | `~/.tmux.conf` | Tmux config (Catppuccin theme, vi keys) |
 | `ghostty/config` | `~/.config/ghostty/config` | Ghostty terminal config |

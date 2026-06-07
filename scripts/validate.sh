@@ -107,6 +107,7 @@ if $IS_LINUX; then
   check_cmd "eza"
   check_cmd "lazygit"
   check_cmd "tmux"
+  check_cmd "fastfetch"
 fi
 
 # ---- Symlinks ---------------------------------------------------------------
@@ -123,6 +124,9 @@ check_file "$HOME/.claude/settings.json" "~/.claude/settings.json"
 check_link "$HOME/.tmux.conf"
 check_link "$HOME/.config/starship.toml"
 check_link "$HOME/.config/mise/config.toml"
+if $IS_LINUX; then
+  check_link "$HOME/.config/fastfetch/config.jsonc"
+fi
 
 # ---- Config validity --------------------------------------------------------
 

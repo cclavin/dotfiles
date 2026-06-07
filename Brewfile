@@ -10,7 +10,6 @@ brew "gnupg"        # GPG for commit signing and pass encryption
 # ---- Runtime management -----------------------------------------------------
 brew "mise"         # Polyglot runtime manager — Node, Python, Go, etc. (replaces fnm)
 brew "uv"           # Python package/project/tool manager (replaces pip/venv/pyenv)
-brew "fnm"          # Legacy Node version manager — kept until all machines use mise
 
 # ---- Shell / terminal -------------------------------------------------------
 brew "fzf"                      # Fuzzy finder (Ctrl+R history, Ctrl+T file search)
@@ -24,6 +23,7 @@ brew "git-delta"                # Better git diffs (referenced in .gitconfig)
 
 # ---- Productivity (optional) ------------------------------------------------
 # Comment out anything you don't want
+brew "fastfetch"    # System info on login
 brew "bat"          # Better cat with syntax highlighting
 brew "eza"          # Better ls with colours and git status
 brew "tldr"         # Simplified man pages
