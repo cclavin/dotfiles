@@ -118,6 +118,8 @@ _load_secret() {
 }
 
 export ANTHROPIC_API_KEY=$(_load_secret ANTHROPIC_API_KEY)
+# Fall back to ~/.env.secrets when no credential store is configured (e.g. pre-GPG WSL setup)
+[[ -z "$ANTHROPIC_API_KEY" && -f ~/.env.secrets ]] && source ~/.env.secrets
 
 # ---- New project scaffold ---------------------------------------------------
 # Copies _template, runs ai-init, inits git, creates a private GitHub repo.
