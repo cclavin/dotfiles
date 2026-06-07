@@ -1,0 +1,10 @@
+# asciinema config — v3 format (~/.config/asciinema/config.toml)
+# Docs: https://docs.asciinema.org/manual/cli/configuration/
+
+[session]
+# Cap idle gaps at N seconds so long pauses don't pad recordings.
+idle_time_limit = 2.0
+
+[playback]
+# Same cap on playback for recordings made without the session cap.
+idle_time_limit = 2.0

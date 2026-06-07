@@ -28,6 +28,7 @@ brew "fastfetch"    # System info on login
 brew "bat"          # Better cat with syntax highlighting
 brew "eza"          # Better ls with colours and git status
 brew "tldr"         # Simplified man pages
+brew "asciinema"    # Record/share terminal sessions (v3); config in asciinema/config.toml
 
 # ---- Fonts ------------------------------------------------------------------
 cask "ghostty"                        # GPU-accelerated terminal emulator

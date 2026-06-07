@@ -17,6 +17,7 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `.prettierrc` | `~/.prettierrc` | Default Prettier formatting |
 | `starship/starship.toml` | `~/.config/starship.toml` | Starship prompt config |
 | `fastfetch/config.jsonc` | `~/.config/fastfetch/config.jsonc` | System info displayed on fresh session start (Linux/macOS) |
+| `asciinema/config.toml` | `~/.config/asciinema/config.toml` | Terminal recording defaults (idle-time cap). Tool: brew on macOS; v3 binary on demand on Linux |
 | `mise/config.toml` | `~/.config/mise/config.toml` | Global runtime versions (Node LTS, Python 3.12) |
 | `tmux/.tmux.conf` | `~/.tmux.conf` | Tmux config (Catppuccin theme, vi keys) |
 | `ghostty/config` | `~/.config/ghostty/config` | Ghostty terminal config |

@@ -32,6 +32,7 @@ link "$DOTFILES/.editorconfig"          "$HOME/.editorconfig"
 link "$DOTFILES/.prettierrc"            "$HOME/.prettierrc"
 link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
 link "$DOTFILES/fastfetch/config.jsonc" "$HOME/.config/fastfetch/config.jsonc"
+link "$DOTFILES/asciinema/config.toml"  "$HOME/.config/asciinema/config.toml"
 link "$DOTFILES/ghostty/config"        "$HOME/.config/ghostty/config"
 link "$DOTFILES/mise/config.toml"      "$HOME/.config/mise/config.toml"
 # Trust the symlinked config — mise requires explicit trust for files that
