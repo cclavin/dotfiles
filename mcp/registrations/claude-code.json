@@ -23,10 +23,6 @@
         "GODOT_PATH": "${GODOT_PATH}"
       }
     },
-    "supabase-local": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://127.0.0.1:54321/mcp", "--header", "apikey: ${SUPABASE_ACCESS_TOKEN}"]
-    },
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
