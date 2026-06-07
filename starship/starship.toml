@@ -41,7 +41,7 @@ version_format = "v${major}.${minor}"
 [golang]
 symbol = " "
 style = "bold teal"
-version_format = "v${major}.${minor}"
+format = "via [$symbol](bold teal) "
 
 [nodejs]
 symbol = " "
