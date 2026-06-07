@@ -282,6 +282,7 @@ if [ ! -f "$HOME/.claude/settings.json" ] && [ ! -L "$HOME/.claude/settings.json
   run mkdir -p "$HOME/.claude"
   run cp "$DOTFILES/claude/settings.json.example" "$HOME/.claude/settings.json"
   success "created ~/.claude/settings.json from template"
+  info "Run: bash scripts/mcp-setup.sh to add MCP servers"
 else
   info "~/.claude/settings.json already exists -- skipping"
 fi

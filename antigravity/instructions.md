@@ -10,7 +10,7 @@ These instructions apply to every project. Project-level AGENTS.md files extend 
 
 ## Coding Practices
 - Optimize for readability and maintainability over clever syntax.
-- Strictly adhere to SOLID principles and DRY patterns.
+- Use the minimum complexity the task requires — prefer simple, readable code over premature abstraction. Apply SOLID/DRY judiciously, not dogmatically.
 - Keep functions and methods small and single-purpose.
 - Prefer explicit null-handling and modern language syntax (e.g. async/await).
 - Write comments ONLY for complex business logic. Never comment obvious code.
