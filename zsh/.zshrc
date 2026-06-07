@@ -89,7 +89,7 @@ if [[ -o interactive ]]; then
   _zle_mark_at_prompt() { _zle_at_prompt=1 }
   _zle_mark_not_at_prompt() { _zle_at_prompt=0 }
   _git_fetch_and_refresh() { git fetch --quiet 2>/dev/null; kill -USR1 $$ }
-  TRAPUSR1() { (( _zle_at_prompt )) && zle reset-prompt }
+  TRAPUSR1() { (( _zle_at_prompt )) && zle reset-prompt 2>/dev/null }
   chpwd() { git rev-parse --git-dir &>/dev/null && _git_fetch_and_refresh &| }
 fi
 
