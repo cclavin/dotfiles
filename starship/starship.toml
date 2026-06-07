@@ -4,7 +4,7 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 add_newline = true
-command_timeout = 2000
+command_timeout = 5000
 scan_timeout = 500
 palette = "catppuccin_mocha"
 
@@ -41,7 +41,7 @@ version_format = "v${major}.${minor}"
 [golang]
 symbol = " "
 style = "bold teal"
-format = "via [$symbol](bold teal) "
+version_format = "v${major}.${minor}"
 
 [nodejs]
 symbol = " "
