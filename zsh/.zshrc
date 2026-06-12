@@ -94,17 +94,16 @@ if [[ -o interactive ]]; then
 fi
 
 # ---- Secure secret loading --------------------------------------------------
-# Loads a secret from the OS-appropriate credential store.
-# Never stores secrets in plain text files.
-#
-# macOS:        macOS Keychain (security command)
-# Linux/WSL:    pass (gpg-encrypted password store) — preferred
-#               Falls back to GNOME libsecret (secret-tool) if pass not found
+# Preferred stores (encrypted, never committed):
+#   macOS:        macOS Keychain (security command)
+#   Linux/WSL:    pass (GPG-encrypted) — preferred; falls back to GNOME libsecret
+# Pre-GPG fallback: ~/.env.secrets (plain-text, chmod 600, never committed)
 #
 # To store a secret:
 #   macOS:  security add-generic-password -a "$USER" -s KEY_NAME -w
 #   Linux:  pass insert api-keys/KEY_NAME
 #           or: secret-tool store --label="KEY_NAME" application KEY_NAME
+#   Any:    echo 'export KEY_NAME=value' >> ~/.env.secrets && chmod 600 ~/.env.secrets
 _load_secret() {
   local key="$1"
   if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -114,12 +113,16 @@ _load_secret() {
   elif command -v secret-tool &>/dev/null; then
     secret-tool lookup application "$key" 2>/dev/null
   fi
-  # Returns empty string if no store is available — keys will just be unset
+  # Returns empty string when no store is configured — key falls through to ~/.env.secrets
 }
 
-export ANTHROPIC_API_KEY=$(_load_secret ANTHROPIC_API_KEY)
-# Fall back to ~/.env.secrets when no credential store is configured (e.g. pre-GPG WSL setup)
-[[ -z "$ANTHROPIC_API_KEY" && -f ~/.env.secrets ]] && source ~/.env.secrets
+# Source flat fallback first; credential store is checked next and wins when it returns a value.
+[[ -f ~/.env.secrets ]] && source ~/.env.secrets
+for _secret_key in ANTHROPIC_API_KEY EXA_API_KEY; do
+  _secret_val=$(_load_secret "$_secret_key")
+  [[ -n "$_secret_val" ]] && export "$_secret_key=$_secret_val"
+done
+unset _secret_key _secret_val
 
 # ---- New project scaffold ---------------------------------------------------
 # Copies _template, runs ai-init, inits git, creates a private GitHub repo.

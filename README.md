@@ -41,6 +41,7 @@ This repository handles automated bootstrapping of my core terminal environment 
 | `~/.claude/settings.json` | Claude Code config (MCP servers merged in by `mcp/deploy.py`) |
 | `~/.claude/settings.local.json` | Machine-local Claude permission overrides |
 | `mcp/env` | MCP server secrets — copy from `mcp/env.example` and fill in |
+| `~/.env.secrets` | Shell API keys (pre-GPG fallback) — `chmod 600`, never committed |
 | `mcp/local/registrations/*.json` | Private/machine-specific MCP servers (never committed) |
 | `~/.local/share/dotfiles/state.env` | Installed version, role, migration history |
 | `%APPDATA%\Code\User\settings.json` | VS Code settings — deployed by `scripts/vscode-deploy.sh` on bootstrap (Windows path, cannot symlink from WSL) |
@@ -191,12 +192,21 @@ gh auth login
 # 8. Install Claude Code
 npm install -g @anthropic-ai/claude-code
 
-# 9. Set up MCP servers
+# 9. Store shell API keys
+# Option A — recommended once you have a GPG key:
+gpg --full-generate-key
+pass init <your-gpg-key-id>
+pass insert api-keys/ANTHROPIC_API_KEY   # used by Claude Code CLI
+# Option B — simplest pre-GPG start:
+echo 'export ANTHROPIC_API_KEY=your-key-here' >> ~/.env.secrets
+chmod 600 ~/.env.secrets
+
+# 10. Set up MCP servers
 cp ~/dotfiles/mcp/env.example ~/dotfiles/mcp/env
 $EDITOR ~/dotfiles/mcp/env   # fill in API keys
 bash ~/dotfiles/scripts/mcp-setup.sh
 
-# 10. Confirm everything is clean
+# 11. Confirm everything is clean
 bash ~/dotfiles/bootstrap.sh --audit
 ```
 
@@ -388,8 +398,13 @@ files on disk.
 | Windows (WSL) | Windows Credential Manager | via Git Credential Manager, or use pass |
 
 `~/.zshrc` calls `_load_secret KEY_NAME` which queries the appropriate store
-for the current OS. If no store is available the variable is simply unset — no
-error, no plain-text fallback.
+for the current OS. If a credential store returns a value, it wins.
+
+**Pre-GPG fallback:** `~/.env.secrets` is sourced first on every shell start.
+Any key not resolved by the credential store retains its value from that file.
+It is never committed — `chmod 600` and treat it as a temporary bridge until
+`pass` is set up. Migrate: `pass insert api-keys/KEY_NAME`, then remove the
+line from `~/.env.secrets`.
 
 ---
 
