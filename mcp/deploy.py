@@ -48,6 +48,16 @@ MCP_ROOT = SCRIPT_DIR  # dotfiles/mcp/
 
 HOME = Path.home()
 
+# Antigravity stores its config in the Windows user profile when running under
+# WSL. Detect WSL by checking for a mounted Windows filesystem and derive the
+# Windows home from the current Linux username.
+_win_home = Path(f"/mnt/c/Users/{os.getenv('USER', HOME.name)}")
+_antigravity_config = (
+    _win_home / ".gemini" / "antigravity-ide" / "mcp_config.json"
+    if _win_home.exists()
+    else HOME / ".gemini" / "antigravity-ide" / "mcp_config.json"
+)
+
 TOOL_CONFIGS = {
     "claude-code": {
         "registration": str(MCP_ROOT / "registrations" / "claude-code.json"),
@@ -63,7 +73,7 @@ TOOL_CONFIGS = {
     },
     "antigravity": {
         "registration": str(MCP_ROOT / "registrations" / "antigravity.json"),
-        "live_config": str(HOME / ".gemini" / "antigravity" / "mcp_config.json"),
+        "live_config": str(_antigravity_config),
         "format": "json",
         "mcp_key": "mcpServers",
     },

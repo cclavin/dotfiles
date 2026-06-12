@@ -18,6 +18,9 @@
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"]
     },
+    "notion": {
+      "url": "https://mcp.notion.com/mcp"
+    },
     "vault-root": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "${VAULT_ROOT}"]
