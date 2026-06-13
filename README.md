@@ -231,6 +231,38 @@ If Git for Windows is not installed, the credential helper section in
 `~/.gitconfig.local` is commented out with instructions. You can either install
 Git for Windows and re-run bootstrap, or set up GPG + `pass` inside WSL.
 
+### Tailscale / homelab connectivity
+
+WSL with `networkingMode=mirrored` (set in `%USERPROFILE%\.wslconfig`) shares
+the Windows network stack but does **not** inherit Tailscale's MagicDNS — WSL
+cannot resolve `*.home.*` or other split-DNS names even though the Windows
+client is connected.
+
+**Recommended fix — install Tailscale in WSL directly:**
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up --hostname=$(hostname)-wsl
+```
+
+WSL becomes its own tailnet node with full MagicDNS. This follows the same
+pattern as every other Linux machine in the stack: each machine that needs
+tailnet access gets Tailscale installed directly.
+
+**Interim workaround** (single service, no extra node): add the Tailscale IP
+of the target machine to `/etc/hosts`. Get the IP from Windows:
+
+```powershell
+tailscale ip --4 <machine-name>   # run in PowerShell
+```
+
+Then in WSL:
+```bash
+echo '<tailscale-ip> <hostname>' | sudo tee -a /etc/hosts
+```
+
+This survives WSL restarts but needs manual updating if the Tailscale IP changes.
+
 ### Partially initialized machine
 
 If you've previously set up tools manually in WSL:
