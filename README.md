@@ -192,12 +192,22 @@ gh auth login
 # 8. Install Claude Code
 npm install -g @anthropic-ai/claude-code
 
-# 9. Store shell API keys
-# Option A — recommended once you have a GPG key:
+# 9. Store shell API keys (pick one)
+
+# Option A — preferred (Bitwarden, installed by bootstrap):
+#   Add to ~/.zshrc.local:
+#     export BW_SERVER="https://your-vault-url"
+#   Then authenticate once:
+bw login
+#   Add Login items in the Bitwarden web UI named exactly as the env var.
+#   Run bwu in each new shell to unlock the vault session.
+
+# Option B — GPG/pass (no external dependency):
 gpg --full-generate-key
 pass init <your-gpg-key-id>
-pass insert api-keys/ANTHROPIC_API_KEY   # used by Claude Code CLI
-# Option B — simplest pre-GPG start:
+pass insert api-keys/ANTHROPIC_API_KEY
+
+# Option C — plain-text bridge (fastest start, migrate away when ready):
 echo 'export ANTHROPIC_API_KEY=your-key-here' >> ~/.env.secrets
 chmod 600 ~/.env.secrets
 
@@ -393,18 +403,24 @@ files on disk.
 | Platform | Store | How to add a secret |
 |----------|-------|-------------------|
 | macOS | Keychain | `security add-generic-password -a "$USER" -s KEY_NAME -w` |
-| Linux (desktop) | GNOME libsecret | `secret-tool store --label="KEY_NAME" application KEY_NAME` |
+| Linux / WSL | Bitwarden (`bw`) | Create a Login item named `KEY_NAME`; run `bwu` to unlock session |
 | Linux / WSL | pass (GPG) | `pass insert api-keys/KEY_NAME` |
-| Windows (WSL) | Windows Credential Manager | via Git Credential Manager, or use pass |
+| Linux (desktop) | GNOME libsecret | `secret-tool store --label="KEY_NAME" application KEY_NAME` |
 
-`~/.zshrc` calls `_load_secret KEY_NAME` which queries the appropriate store
-for the current OS. If a credential store returns a value, it wins.
+`~/.zshrc` calls `_load_secret KEY_NAME` which queries the appropriate store.
+The first store that returns a value wins; others are skipped.
 
-**Pre-GPG fallback:** `~/.env.secrets` is sourced first on every shell start.
+**Bitwarden (`bw`)** is the preferred Linux/WSL store. `BW_SERVER` (for
+self-hosted Vaultwarden) and the session bootstrap belong in `~/.zshrc.local` —
+never committed. Run `bwu` once after shell start to unlock and export
+`BW_SESSION`; all subsequent `_load_secret` calls in that shell use the vault.
+Name Bitwarden Login items exactly as the env var (e.g. `ANTHROPIC_API_KEY`) so
+`bw get password` matches without extra configuration.
+
+**Plain-text fallback:** `~/.env.secrets` is sourced first on every shell start.
 Any key not resolved by the credential store retains its value from that file.
-It is never committed — `chmod 600` and treat it as a temporary bridge until
-`pass` is set up. Migrate: `pass insert api-keys/KEY_NAME`, then remove the
-line from `~/.env.secrets`.
+It is never committed — `chmod 600`. Treat it as a bridge until `bw` is set up,
+then remove it line by line as keys migrate to the vault.
 
 ---
 

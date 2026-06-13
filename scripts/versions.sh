@@ -13,6 +13,7 @@ _DOTFILES_VERSIONS_LOADED=1
 
 # ---- Pinned Versions --------------------------------------------------------
 
+BW_CLI_VERSION="2026.5.0"
 DELTA_VERSION="0.18.2"
 FASTFETCH_VERSION="2.64.2"
 YQ_VERSION="4.53.3"

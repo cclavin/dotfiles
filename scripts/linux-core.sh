@@ -198,6 +198,23 @@ else
   success "gh CLI installed"
 fi
 
+# ---- bw CLI (Bitwarden command-line vault) ----------------------------------
+
+section "Installing bw CLI"
+
+if command -v bw &>/dev/null; then
+  success "bw already installed: $(bw --version)"
+elif is_dry_run; then
+  info "[dry-run] would install bw CLI v${BW_CLI_VERSION} (binary from GitHub)"
+else
+  curl -sLo /tmp/bw.zip \
+    "https://github.com/bitwarden/clients/releases/download/cli-v${BW_CLI_VERSION}/bw-linux-${BW_CLI_VERSION}.zip"
+  unzip -q /tmp/bw.zip -d /tmp/bw-extract
+  sudo install /tmp/bw-extract/bw /usr/local/bin/bw
+  rm -rf /tmp/bw.zip /tmp/bw-extract
+  success "bw CLI installed (v${BW_CLI_VERSION})"
+fi
+
 # ---- mise (polyglot runtime manager — replaces fnm) -------------------------
 
 section "Installing mise"

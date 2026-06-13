@@ -35,4 +35,5 @@ cask "ghostty"                        # GPU-accelerated terminal emulator
 cask "font-jetbrains-mono-nerd-font"  # Required for Starship glyphs
 
 # ---- Security ---------------------------------------------------------------
-brew "pass"         # GPG-encrypted password store (cross-platform compatible)
+brew "bitwarden-cli" # bw CLI — Bitwarden/Vaultwarden vault access from the shell
+brew "pass"          # GPG-encrypted password store (cross-platform compatible)

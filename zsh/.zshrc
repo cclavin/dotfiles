@@ -94,26 +94,33 @@ if [[ -o interactive ]]; then
 fi
 
 # ---- Secure secret loading --------------------------------------------------
-# Preferred stores (encrypted, never committed):
+# Store priority (first match wins):
 #   macOS:        macOS Keychain (security command)
-#   Linux/WSL:    pass (GPG-encrypted) — preferred; falls back to GNOME libsecret
-# Pre-GPG fallback: ~/.env.secrets (plain-text, chmod 600, never committed)
+#   Linux/WSL:    Bitwarden bw CLI — preferred when BW_SESSION is set
+#                 pass (GPG-encrypted) — fallback when bw is unavailable
+#                 GNOME libsecret — fallback on desktop Linux
+# Pre-store fallback: ~/.env.secrets (plain-text, chmod 600, never committed)
 #
 # To store a secret:
-#   macOS:  security add-generic-password -a "$USER" -s KEY_NAME -w
-#   Linux:  pass insert api-keys/KEY_NAME
-#           or: secret-tool store --label="KEY_NAME" application KEY_NAME
-#   Any:    echo 'export KEY_NAME=value' >> ~/.env.secrets && chmod 600 ~/.env.secrets
+#   macOS:    security add-generic-password -a "$USER" -s KEY_NAME -w
+#   bw:       add a Login item in Bitwarden named exactly KEY_NAME; run bwu to unlock
+#   pass:     pass insert api-keys/KEY_NAME
+#   fallback: echo 'export KEY_NAME=value' >> ~/.env.secrets && chmod 600 ~/.env.secrets
+#
+# Machine-local config (never committed — set in ~/.zshrc.local):
+#   export BW_SERVER="https://your-vault-url"   # required for self-hosted Vaultwarden
 _load_secret() {
   local key="$1"
   if [[ "$OSTYPE" == "darwin"* ]]; then
     security find-generic-password -a "$USER" -s "$key" -w 2>/dev/null
+  elif command -v bw &>/dev/null && [[ -n "${BW_SESSION:-}" ]]; then
+    bw get password "$key" --session "$BW_SESSION" 2>/dev/null
   elif command -v pass &>/dev/null; then
     pass "api-keys/$key" 2>/dev/null
   elif command -v secret-tool &>/dev/null; then
     secret-tool lookup application "$key" 2>/dev/null
   fi
-  # Returns empty string when no store is configured — key falls through to ~/.env.secrets
+  # Returns empty string when no store is active — key falls through to ~/.env.secrets
 }
 
 # Source flat fallback first; credential store is checked next and wins when it returns a value.
@@ -123,6 +130,11 @@ for _secret_key in ANTHROPIC_API_KEY EXA_API_KEY; do
   [[ -n "$_secret_val" ]] && export "$_secret_key=$_secret_val"
 done
 unset _secret_key _secret_val
+
+# bwu — unlock the Bitwarden vault and export the session for this shell.
+# Requires BW_SERVER set in ~/.zshrc.local for self-hosted instances.
+# After running bwu, _load_secret will prefer the vault over other stores.
+bwu() { export BW_SESSION=$(bw unlock --raw); }
 
 # ---- New project scaffold ---------------------------------------------------
 # Copies _template, runs ai-init, inits git, creates a private GitHub repo.
