@@ -1,12 +1,13 @@
 {
   "_meta": {
     "name": "notion",
-    "description": "Official Notion MCP via remote SSE endpoint. Provides read/write access to Notion workspace.",
-    "transport": "http-sse",
+    "description": "Official Notion MCP via native HTTP transport. Provides read/write access to Notion workspace.",
+    "transport": "http",
     "endpoint": "https://mcp.notion.com/mcp",
     "docs": "https://developers.notion.com/docs/mcp",
     "requires_api_key": false,
-    "auth": "OAuth — handled by Notion in-browser, no key needed in config"
-  },
-  "url": "https://mcp.notion.com/mcp"
+    "auth": "OAuth — handled natively by Claude Code via /mcp panel",
+    "deploy_cmd": "claude mcp add --transport http --scope user notion https://mcp.notion.com/mcp",
+    "note": "NOT in settings.json mcpServers — must be added via claude mcp add. OAuth completes via /mcp in Claude Code."
+  }
 }
