@@ -84,10 +84,15 @@ alias cw='cd ~/workspace/code'
 # when sitting at the prompt).
 if [[ -o interactive ]]; then
   _zle_at_prompt=0
-  precmd_functions+=( _zle_mark_at_prompt )
-  preexec_functions+=( _zle_mark_not_at_prompt )
-  _zle_mark_at_prompt() { _zle_at_prompt=1 }
-  _zle_mark_not_at_prompt() { _zle_at_prompt=0 }
+  _zle_at_prompt_set()   { _zle_at_prompt=1 }
+  _zle_at_prompt_clear() { _zle_at_prompt=0 }
+  # zle-line-init fires after precmd completes and ZLE starts accepting input —
+  # avoids the precmd→prompt race that caused raw $PROMPT to print literally.
+  # Falls back to precmd in non-ZLE contexts (scripts, zsh -i -c, etc.).
+  autoload -Uz add-zle-hook-widget 2>/dev/null
+  add-zle-hook-widget zle-line-init _zle_at_prompt_set 2>/dev/null \
+    || precmd_functions+=( _zle_at_prompt_set )
+  preexec_functions+=( _zle_at_prompt_clear )
   _git_fetch_and_refresh() { git fetch --quiet 2>/dev/null; kill -USR1 $$ }
   TRAPUSR1() { (( _zle_at_prompt )) && zle reset-prompt 2>/dev/null }
   chpwd() { git rev-parse --git-dir &>/dev/null && _git_fetch_and_refresh &| }
