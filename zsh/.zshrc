@@ -34,8 +34,9 @@ fi
 [[ -d /usr/local/go/bin ]] && export PATH="$PATH:/usr/local/go/bin"
 [[ -d "$HOME/go/bin" ]]    && export PATH="$PATH:$HOME/go/bin"
 
-# Starship prompt
-if command -v starship &>/dev/null; then
+# Starship prompt — guard with -t 1 to skip non-terminal contexts where
+# starship init tries to set ZLE options and emits "can't change option: zle".
+if command -v starship &>/dev/null && [[ -o interactive && -t 1 ]]; then
   eval "$(starship init zsh)"
 fi
 
@@ -82,16 +83,14 @@ alias cw='cd ~/workspace/code'
 # _zle_at_prompt flag prevents reset-prompt firing during command execution (which would print
 # the raw $PROMPT string literally because zle returns true whenever ZLE is enabled, not only
 # when sitting at the prompt).
-if [[ -o interactive ]]; then
+if [[ -o interactive && -t 1 ]]; then
   _zle_at_prompt=0
   _zle_at_prompt_set()   { _zle_at_prompt=1 }
   _zle_at_prompt_clear() { _zle_at_prompt=0 }
   # zle-line-init fires after precmd completes and ZLE starts accepting input —
   # avoids the precmd→prompt race that caused raw $PROMPT to print literally.
-  # Falls back to precmd in non-ZLE contexts (scripts, zsh -i -c, etc.).
-  autoload -Uz add-zle-hook-widget 2>/dev/null
-  add-zle-hook-widget zle-line-init _zle_at_prompt_set 2>/dev/null \
-    || precmd_functions+=( _zle_at_prompt_set )
+  autoload -Uz add-zle-hook-widget
+  add-zle-hook-widget zle-line-init _zle_at_prompt_set
   preexec_functions+=( _zle_at_prompt_clear )
   _git_fetch_and_refresh() { git fetch --quiet 2>/dev/null; kill -USR1 $$ }
   TRAPUSR1() { (( _zle_at_prompt )) && zle reset-prompt 2>/dev/null }
