@@ -7,12 +7,12 @@ set -euo pipefail
 
 command -v tmux >/dev/null 2>&1 || { echo 0; exit 0; }
 
-pane_pids=$(tmux list-panes -a -F '#{pane_pid}' 2>/dev/null || true)
-[ -z "$pane_pids" ] && { echo 0; exit 0; }
+pane_pids=$(tmux list-panes -a -F '#{pane_pid}' 2>/dev/null | tr '\n' ' ' || true)
+[ -z "${pane_pids// /}" ] && { echo 0; exit 0; }
 
 ps -eo pid=,ppid=,comm= 2>/dev/null | awk -v seeds="$pane_pids" '
   BEGIN {
-    n = split(seeds, s, "\n")
+    n = split(seeds, s, " ")
     for (i = 1; i <= n; i++) if (s[i] != "") live[s[i]] = 1
   }
   {
