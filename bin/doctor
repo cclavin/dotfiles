@@ -1,0 +1,345 @@
+#!/usr/bin/env bash
+# bin/doctor — Report live state of this machine (and, optionally, hosts you
+# configure) so system state does not have to be recorded in notes.
+#
+# Read-only: no mutations, no daemon. Built on stable primitives (df, git,
+# ssh, /proc, /dev/tcp) so it does not rot as tooling churns.
+#
+# This file is committed to a PUBLIC repo — it contains NO hostnames, IPs, or
+# topology. Anything machine-specific goes in a local, un-committed config:
+#
+#   ${XDG_CONFIG_HOME:-~/.config}/doctor/config
+#
+#     DOCTOR_WIN_HOST="<host>"              # reach Windows-native services from WSL
+#     DOCTOR_HEALTH_HOSTS="<ssh-alias> ..." # full health snapshot over SSH
+#     DOCTOR_PING_HOSTS="<ssh-alias> ..."   # reachability check only
+#     DOCTOR_SERVICES="name:port ..."       # override the local service list
+#
+# SSH aliases resolve via your private ~/.ssh/config, so no addresses appear here.
+#
+# Usage:
+#   doctor            # full report
+#   doctor --json     # machine-readable JSON (for scripts / a future --explain)
+#   doctor --local    # skip configured remote hosts
+#   doctor --quiet    # only warnings and failures
+#
+# Exit: 0 clean, 1 if any threshold tripped or a check failed.
+
+set -uo pipefail  # deliberately not -e: individual checks are allowed to fail
+
+DOTFILES="$(cd "$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")" && pwd)"
+source "$DOTFILES/scripts/lib.sh"
+source "$DOTFILES/scripts/state.sh"
+
+DOCTOR_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/doctor/config"
+# shellcheck source=/dev/null disable=SC1091
+[[ -f "$DOCTOR_CONFIG" ]] && source "$DOCTOR_CONFIG"
+
+# ---- Options --------------------------------------------------------------
+
+MODE_JSON=false
+DO_REMOTE=true
+QUIET=false
+for arg in "$@"; do
+  case "$arg" in
+    --json)  MODE_JSON=true ;;
+    --local) DO_REMOTE=false ;;
+    --quiet) QUIET=true ;;
+    -h|--help)
+      grep -E '^#( |$)' "$(readlink -f "${BASH_SOURCE[0]}")" | sed 's/^#\ \{0,1\}//'
+      exit 0 ;;
+    *) warn "unknown option: $arg"; exit 2 ;;
+  esac
+done
+
+DISK_USED_WARN=85   # percent
+MEM_USED_WARN=90    # percent
+
+# Local AI services to probe: default to the well-known ports of common tools;
+# override wholesale with DOCTOR_SERVICES in the config file.
+DEFAULT_SERVICES="ollama:11434 koboldcpp:5001 comfyui:8188 sillytavern:8000 openwebui:3000"
+SERVICES="${DOCTOR_SERVICES:-$DEFAULT_SERVICES}"
+
+# ---- Collected results ---------------------------------------------------
+# Each row is pipe-delimited; rendered as human or JSON at the end.
+
+HOST_KV=()      # key|value
+DISK_ROWS=()    # mount|size|used|pct|flag
+MEM_ROWS=()     # metric|value|pct|flag
+SVC_ROWS=()     # name|endpoint|status|detail
+REPO_ROWS=()    # name|branch|ahead|behind|state
+REMOTE_ROWS=()  # label|status|detail
+WARNINGS=()
+
+add_warn() { WARNINGS+=("$1"); }
+
+# ---- Helpers -----------------------------------------------------------------
+
+# TCP reachability without curl. _port_open host port [timeout_s]
+_port_open() {
+  local host="$1" port="$2" t="${3:-2}"
+  timeout "$t" bash -c "exec 3<>/dev/tcp/${host}/${port}" 2>/dev/null
+}
+
+_pct_num() { echo "${1%\%}"; }
+
+_ssh() { ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new "$@"; }
+
+# ---- Host identity ---------------------------------------------------------
+
+collect_host() {
+  local os uptime role dfver
+  os="$(uname -sr)"
+  $IS_WSL && os="$os (WSL2)"
+  uptime="$(uptime -p 2>/dev/null | sed 's/^up //')"
+  role="$(state_get ROLE)"; role="${role:-unset}"
+  dfver="$(git -C "$DOTFILES" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+  [[ -n "$(git -C "$DOTFILES" status --porcelain 2>/dev/null)" ]] && dfver="$dfver+dirty"
+
+  HOST_KV+=("hostname|$(hostname)")
+  HOST_KV+=("os|$os")
+  HOST_KV+=("uptime|${uptime:-unknown}")
+  HOST_KV+=("dotfiles_role|$role")
+  HOST_KV+=("dotfiles_version|$dfver")
+  [[ "$dfver" == *"+dirty"* ]] && add_warn "dotfiles working tree is dirty"
+}
+
+# ---- Disk ----------------------------------------------------------------
+
+collect_disk() {
+  # Root fs + single-letter Windows drive mounts (/mnt/c ...). Excludes WSL's
+  # internal /mnt/wsl and /mnt/wslg bind mounts.
+  local size used pct mount flag
+  while read -r _ size used _ pct mount; do
+    [[ "$mount" == "/" || "$mount" =~ ^/mnt/[a-z]$ ]] || continue
+    flag="ok"
+    if [[ "$(_pct_num "$pct")" -ge "$DISK_USED_WARN" ]]; then
+      flag="HIGH"
+      add_warn "disk ${mount} at ${pct} used"
+    fi
+    DISK_ROWS+=("${mount}|${size}|${used}|${pct}|${flag}")
+  done < <(df -h --output=source,size,used,avail,pcent,target 2>/dev/null | tail -n +2)
+}
+
+# ---- Memory / load -----------------------------------------------------------
+
+collect_mem() {
+  local total used pct load flag=ok
+  read -r total used < <(free -m | awk '/^Mem:/ {print $2, $3}')
+  [[ "${total:-0}" -gt 0 ]] || return 0
+  pct=$(( used * 100 / total ))
+  load="$(cut -d' ' -f1-3 < /proc/loadavg)"
+  if [[ "$pct" -ge "$MEM_USED_WARN" ]]; then flag=HIGH; add_warn "memory at ${pct}% used"; fi
+  MEM_ROWS+=("ram|${used}M / ${total}M|${pct}%|${flag}")
+  MEM_ROWS+=("loadavg|${load}|-|ok")
+}
+
+# ---- Local AI services -----------------------------------------------------
+
+collect_services() {
+  local wh="${DOCTOR_WIN_HOST:-}"
+  local spec name port status host detail n
+  for spec in $SERVICES; do
+    name="${spec%%:*}"; port="${spec##*:}"
+    status="down"; host=""; detail=""
+    if _port_open 127.0.0.1 "$port"; then
+      status="up"; host="127.0.0.1"
+    elif [[ -n "$wh" ]] && _port_open "$wh" "$port"; then
+      status="up"; host="$wh"
+    fi
+    if [[ "$status" == "up" && "$name" == "ollama" ]]; then
+      n="$(curl -fsS --max-time 3 "http://${host}:${port}/api/tags" 2>/dev/null | jq -r '.models | length' 2>/dev/null)"
+      [[ -n "$n" && "$n" != "null" ]] && detail="${n} models"
+    fi
+    SVC_ROWS+=("${name}|${host:--}:${port}|${status}|${detail}")
+  done
+}
+
+# ---- Repo drift ----------------------------------------------------------
+
+_collect_repo() {
+  local dir="$1" name branch ahead behind state counts
+  [[ -d "$dir/.git" ]] || return 0
+  name="$(basename "$dir")"
+  branch="$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
+  counts="$(git -C "$dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null || printf '0\t0')"
+  behind="$(echo "$counts" | cut -f1)"; ahead="$(echo "$counts" | cut -f2)"
+  if [[ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]]; then
+    state="dirty"; add_warn "repo ${name} has uncommitted changes"
+  else
+    state="clean"
+  fi
+  [[ "${ahead:-0}" -gt 0 ]] && add_warn "repo ${name} is ${ahead} commit(s) ahead of upstream"
+  REPO_ROWS+=("${name}|${branch}|${ahead:-0}|${behind:-0}|${state}")
+}
+
+SEEN_REPOS=""
+collect_repos() {
+  _collect_repo "$DOTFILES"; SEEN_REPOS="$(basename "$DOTFILES")"
+  if [[ -d "$HOME/infra" ]]; then _collect_repo "$HOME/infra"; SEEN_REPOS+=" infra"; fi
+  local d name
+  for d in "$HOME/workspace/code"/*/; do
+    [[ -d "$d/.git" ]] || continue
+    name="$(basename "$d")"
+    [[ " $SEEN_REPOS " == *" $name "* ]] && continue
+    _collect_repo "${d%/}"
+  done
+}
+
+# ---- Configured remote hosts -------------------------------------------------
+
+_remote_health() {
+  local h="$1" out disk mem docker failed
+  if ! _ssh "$h" true 2>/dev/null; then
+    REMOTE_ROWS+=("$h|unreachable|ssh failed (host down or tailnet offline?)")
+    add_warn "$h unreachable"; return
+  fi
+  out="$(_ssh "$h" '
+    printf "disk=%s\n"   "$(df -h / | awk "NR==2{print \$5}")"
+    printf "mem=%s\n"    "$(free -m | awk "/^Mem:/{printf \"%d%%\",\$3*100/\$2}")"
+    printf "docker=%s\n" "$(docker ps -q 2>/dev/null | wc -l)"
+    printf "failed=%s\n" "$(systemctl --failed --no-legend 2>/dev/null | wc -l)"
+  ' 2>/dev/null)"
+  disk="$(sed -n 's/^disk=//p'   <<<"$out")"
+  mem="$(sed -n 's/^mem=//p'     <<<"$out")"
+  docker="$(sed -n 's/^docker=//p' <<<"$out")"
+  failed="$(sed -n 's/^failed=//p' <<<"$out")"
+  REMOTE_ROWS+=("$h|up|disk ${disk:-?} · mem ${mem:-?} · ${docker:-?} containers · ${failed:-?} failed units")
+  [[ "${failed:-0}" =~ ^[0-9]+$ && "${failed:-0}" -gt 0 ]] && add_warn "$h has ${failed} failed systemd unit(s)"
+  [[ "${disk%\%}" =~ ^[0-9]+$ && "${disk%\%}" -ge "$DISK_USED_WARN" ]] && add_warn "$h disk / at ${disk}"
+}
+
+_remote_ping() {
+  local h="$1"
+  if _ssh "$h" true 2>/dev/null; then
+    REMOTE_ROWS+=("$h|up|reachable")
+  else
+    REMOTE_ROWS+=("$h|unreachable|ssh failed")
+    add_warn "$h unreachable"
+  fi
+}
+
+collect_remote() {
+  if ! command -v ssh &>/dev/null; then
+    REMOTE_ROWS+=("ssh|unavailable|ssh client not installed"); return
+  fi
+  if [[ -z "${DOCTOR_HEALTH_HOSTS:-}${DOCTOR_PING_HOSTS:-}" ]]; then
+    REMOTE_ROWS+=("(config)|none|no hosts set — add DOCTOR_HEALTH_HOSTS / DOCTOR_PING_HOSTS to $DOCTOR_CONFIG")
+    return
+  fi
+  local h
+  for h in ${DOCTOR_HEALTH_HOSTS:-}; do _remote_health "$h"; done
+  for h in ${DOCTOR_PING_HOSTS:-};   do _remote_ping   "$h"; done
+}
+
+# ---- Renderers ---------------------------------------------------------------
+
+_col() { printf '  %-17s %s\n' "$1" "$2"; }
+
+render_human() {
+  if ! $QUIET; then
+    section "Host"
+    local kv; for kv in "${HOST_KV[@]}"; do _col "${kv%%|*}" "${kv#*|}"; done
+
+    section "Disk"
+    local r mark
+    for r in "${DISK_ROWS[@]:-}"; do
+      [[ -z "$r" ]] && continue
+      IFS='|' read -r mount size used pct flag <<<"$r"
+      mark="[✓]"; [[ "$flag" != "ok" ]] && mark="[!]"
+      printf '  %s %-12s %6s used of %-6s (%s)\n' "$mark" "$mount" "$used" "$size" "$pct"
+    done
+
+    section "Memory"
+    for r in "${MEM_ROWS[@]:-}"; do
+      IFS='|' read -r m v p f <<<"$r"
+      mark="[✓]"; [[ "$f" != "ok" ]] && mark="[!]"
+      printf '  %s %-10s %s %s\n' "$mark" "$m" "$v" "$([[ "$p" != "-" ]] && echo "($p)")"
+    done
+
+    section "Local AI services"
+    for r in "${SVC_ROWS[@]:-}"; do
+      IFS='|' read -r name ep status detail <<<"$r"
+      mark="[✓]"; [[ "$status" != "up" ]] && mark="[·]"
+      printf '  %s %-12s %-20s %-4s %s\n' "$mark" "$name" "$ep" "$status" "$detail"
+    done
+    if $IS_WSL && [[ -z "${DOCTOR_WIN_HOST:-}" ]]; then
+      info "set DOCTOR_WIN_HOST in $DOCTOR_CONFIG to probe Windows-native services from WSL"
+    fi
+
+    section "Repos"
+    local clean=0 note
+    for r in "${REPO_ROWS[@]:-}"; do
+      [[ -z "$r" ]] && continue
+      IFS='|' read -r name branch ahead behind st <<<"$r"
+      if [[ "$st" != "dirty" && "$ahead" -eq 0 ]]; then clean=$((clean+1)); continue; fi
+      note=""
+      [[ "$ahead"  -gt 0 ]] && note+=" ↑$ahead unpushed"
+      [[ "$behind" -gt 0 ]] && note+=" ↓$behind"
+      [[ "$st" == "dirty" ]] && note+=" *uncommitted*"
+      printf '  %s %-26s %-14s%s\n' "[!]" "$name" "$branch" "$note"
+    done
+    [[ "$clean" -gt 0 ]] && printf '  %s %d other repo(s) clean and in sync\n' "[✓]" "$clean"
+
+    if $DO_REMOTE; then
+      section "Remote hosts"
+      for r in "${REMOTE_ROWS[@]:-}"; do
+        [[ -z "$r" ]] && continue
+        IFS='|' read -r label status detail <<<"$r"
+        mark="[✓]"; [[ "$status" != "up" ]] && mark="[!]"
+        [[ "$status" == "none" ]] && mark="[·]"
+        printf '  %s %-16s %s\n' "$mark" "$label" "$detail"
+      done
+    fi
+  fi
+
+  section "Summary"
+  if [[ "${#WARNINGS[@]}" -eq 0 ]]; then
+    success "no warnings"
+  else
+    local w; for w in "${WARNINGS[@]}"; do warn "$w"; done
+  fi
+}
+
+_rows_to_json() {
+  local tmpl="$1"
+  if [[ -z "${2:-}" ]]; then echo "[]"; return; fi
+  shift
+  printf '%s\n' "$@" | jq -R --slurp 'split("\n") | map(select(length>0) | split("|")) | map('"$tmpl"')'
+}
+
+render_json() {
+  local host_json disk_json mem_json svc_json repo_json remote_json warn_json
+  host_json="$(printf '%s\n' "${HOST_KV[@]}" | jq -R --slurp 'split("\n")|map(select(length>0)|split("|"))|map({(.[0]):.[1]})|add')"
+  disk_json="$(_rows_to_json '{mount:.[0],size:.[1],used:.[2],pct:.[3],flag:.[4]}' "${DISK_ROWS[@]:-}")"
+  mem_json="$(_rows_to_json '{metric:.[0],value:.[1],pct:.[2],flag:.[3]}' "${MEM_ROWS[@]:-}")"
+  svc_json="$(_rows_to_json '{name:.[0],endpoint:.[1],status:.[2],detail:.[3]}' "${SVC_ROWS[@]:-}")"
+  repo_json="$(_rows_to_json '{name:.[0],branch:.[1],ahead:(.[2]|tonumber),behind:(.[3]|tonumber),state:.[4]}' "${REPO_ROWS[@]:-}")"
+  remote_json="$(_rows_to_json '{label:.[0],status:.[1],detail:.[2]}' "${REMOTE_ROWS[@]:-}")"
+  warn_json="$(printf '%s\n' "${WARNINGS[@]:-}" | jq -R --slurp 'split("\n")|map(select(length>0))')"
+
+  jq -n \
+    --argjson host   "$host_json" \
+    --argjson disk   "$disk_json" \
+    --argjson memory "$mem_json" \
+    --argjson services "$svc_json" \
+    --argjson repos  "$repo_json" \
+    --argjson remote "$remote_json" \
+    --argjson warnings "$warn_json" \
+    --arg generated "$(date -Iseconds)" \
+    '{generated:$generated, host:$host, disk:$disk, memory:$memory,
+      services:$services, repos:$repos, remote:$remote, warnings:$warnings}'
+}
+
+# ---- Run -------------------------------------------------------------------
+
+collect_host
+collect_disk
+collect_mem
+collect_services
+collect_repos
+$DO_REMOTE && collect_remote
+
+if $MODE_JSON; then render_json; else render_human; fi
+
+[[ "${#WARNINGS[@]}" -eq 0 ]] && exit 0 || exit 1

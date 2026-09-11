@@ -72,6 +72,9 @@ link "$DOTFILES/AGENTS.md"              "$DOTFILES/CLAUDE.md"
 # Agent Template CLI (Strategy B) - Adds ai-init to $PATH
 link "$DOTFILES/bin/ai-init"            "$HOME/.local/bin/ai-init"
 
+# Machine + optional remote-host state report - Adds doctor to $PATH
+link "$DOTFILES/bin/doctor"             "$HOME/.local/bin/doctor"
+
 # ---- Git Templates & Config -------------------------------------------------
 
 section "Git config & templates"
