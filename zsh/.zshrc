@@ -141,7 +141,8 @@ unset _secret_key _secret_val
 bwu() { export BW_SESSION=$(bw unlock --raw); }
 
 # ---- New project scaffold ---------------------------------------------------
-# Copies _template, runs ai-init, inits git, creates a private GitHub repo.
+# Copies _template, runs ai-init, links a private GitHub repo as origin.
+# Does not auto-commit — the template is scaffolding, not your first real commit.
 # Usage: new-project <name> [--lang <template>] [--public]
 #   --lang go | python | nextjs   runs ai-init to populate CLAUDE.md
 #   --public                       creates a public GitHub repo
@@ -173,16 +174,16 @@ new-project() {
     return 1
   fi
 
-  cp -r "$template" "$dest"
+  cp -rL "$template" "$dest"  # -L: _template is a symlink, dereference it, don't copy the link
   cd "$dest" || return 1
 
   if [[ -n "$lang" ]]; then
     ai-init "$lang"
   fi
 
-  git init && git add . && git commit -m "Initial commit"
-  gh repo create "$name" "$visibility" --source=. --remote=origin --push
-  echo "Ready: https://github.com/cclavin/$name"
+  git init
+  gh repo create "$name" "$visibility" --source=. --remote=origin
+  echo "Ready: $dest — origin linked to https://github.com/cclavin/$name, no commits yet"
 }
 
 # ---- Sync workspace/code repos ----------------------------------------------
