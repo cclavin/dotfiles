@@ -29,5 +29,8 @@
       "Bash(wget * | sh)"
     ]
   },
-  "model": "opusplan"
+  "model": "opusplan",
+  "env": {
+    "CLAUDE_CODE_DISABLE_MOUSE": "1"
+  }
 }
